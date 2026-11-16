@@ -1,0 +1,1300 @@
+/**
+ * KodadEats - Realtime Event Bus, Auth & State Sync v4.0
+ * Connects Customer, Restaurant Partner, Captain Rider & Admin
+ * Zero 'kzip' references. 100% KodadEats.
+ */
+
+const RealtimeBus = (function() {
+  const CHANNEL_NAME = 'kodadeats_realtime_channel';
+  const STORAGE_KEY_ORDERS = 'kodadeats_orders';
+  const STORAGE_KEY_CUSTOMERS = 'kodadeats_customers';
+  const STORAGE_KEY_ACTIVE_ORDER = 'kodadeats_current_order_id';
+  const STORAGE_KEY_CURRENT_USER = 'kodadeats_current_user';
+  const STORAGE_KEY_SERVER_URL = 'kodadeats_server_url';
+  const STORAGE_KEY_CAPTAINS = 'kodadeats_captains';
+  const STORAGE_KEY_CURRENT_CAPTAIN = 'kodadeats_current_captain';
+  const STORAGE_KEY_ADMIN_AUTH = 'kodadeats_admin_auth';
+  const STORAGE_KEY_INSTALLS = 'kodadeats_installs_count';
+  const STORAGE_KEY_RESTAURANTS = 'kodadeats_dynamic_restaurants';
+  const STORAGE_KEY_PRODUCTS = 'kodadeats_dynamic_products';
+  const STORAGE_KEY_REST_STATUS = 'eatin_restaurant_status';
+
+  // Authorized Admin Mobile Numbers (Restricted to Owner only)
+  const ADMIN_AUTHORIZED_PHONES = ['9640103505', '9182348241'];
+
+  // Record App Install / Launch
+  function recordAppInstall() {
+    try {
+      const hasRecorded = localStorage.getItem('kodadeats_install_recorded');
+      let count = parseInt(localStorage.getItem(STORAGE_KEY_INSTALLS) || '0', 10);
+      if (!hasRecorded) {
+        count++;
+        localStorage.setItem(STORAGE_KEY_INSTALLS, count.toString());
+        localStorage.setItem('kodadeats_install_recorded', 'true');
+      }
+    } catch (e) {}
+  }
+  recordAppInstall();
+
+  function getTotalInstalls() {
+    try {
+      const stored = parseInt(localStorage.getItem(STORAGE_KEY_INSTALLS) || '0', 10);
+      const registered = getRegisteredCustomers().length;
+      return Math.max(stored, registered, 1);
+    } catch (e) {
+      return 1;
+    }
+  }
+
+  function getTodayMetrics() {
+    const orders = getAllOrders();
+    const todayDateStr = new Date().toDateString();
+    const todayOrders = orders.filter(o => {
+      const d = o.createdAt ? new Date(o.createdAt).toDateString() : todayDateStr;
+      return d === todayDateStr;
+    });
+    const todayDelivered = todayOrders.filter(o => o.status === 'DELIVERED').length;
+    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    return {
+      todayCount: todayOrders.length,
+      todayDelivered,
+      todayRevenue,
+      totalOrders: orders.length,
+      totalInstalls: getTotalInstalls()
+    };
+  }
+
+  // Configurable Server URL (Optimized for 100% Vercel Serverless Architecture)
+  let serverUrl = '';
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_SERVER_URL);
+    // If old Render URL is stored, purge it immediately
+    if (stored && (stored.includes('onrender.com') || stored.includes('render.com'))) {
+      localStorage.removeItem(STORAGE_KEY_SERVER_URL);
+      serverUrl = '';
+    } else {
+      serverUrl = stored || '';
+    }
+  } catch (e) {
+    serverUrl = '';
+  }
+
+  // Unified API Dispatcher: Uses relative /api/... on Vercel for 100% native uptime
+  function sendApiRequest(endpoint, options = {}) {
+    try {
+      const isHttp = typeof window !== 'undefined' && window.location.protocol && window.location.protocol.startsWith('http');
+      const url = isHttp ? endpoint : (serverUrl ? `${serverUrl}${endpoint}` : endpoint);
+      return fetch(url, options).catch(err => {
+        console.warn('[Vercel Cloud API] Offline / local fallback active:', err.message);
+      });
+    } catch (e) {
+      return Promise.resolve();
+    }
+  }
+
+  // Audio Synthesizer Context
+  let audioCtx = null;
+
+  function getAudioContext() {
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtx = new AudioContextClass();
+      }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  // Pure Web Audio Synthesizer (No external sound files required)
+  const Sounds = {
+    // Loud repeating kitchen buzzer & admin siren
+    playIncomingOrderSiren: function() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        [0, 0.3, 0.6, 0.9].forEach((startTime, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(idx % 2 === 0 ? 880 : 660, now + startTime);
+          gain.gain.setValueAtTime(0.4, now + startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + startTime + 0.28);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + startTime);
+          osc.stop(now + startTime + 0.3);
+        });
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    },
+
+    // Pleasant ascending chime for customer order placed / delivered
+    playSuccessChime: function() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + (idx * 0.12));
+          gain.gain.setValueAtTime(0.3, now + (idx * 0.12));
+          gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + (idx * 0.12));
+          osc.stop(now + (idx * 0.12) + 0.38);
+        });
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    },
+
+    // Rider alert beep
+    playRiderAlert: function() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        [0, 0.15, 0.3].forEach((startTime) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(1050, now + startTime);
+          gain.gain.setValueAtTime(0.25, now + startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + startTime + 0.1);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + startTime);
+          osc.stop(now + startTime + 0.12);
+        });
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    },
+
+    // Soft two-tone chime for craving alerts and gentle notifications
+    playBell: function() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        [880, 1174.66].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + (idx * 0.12));
+          gain.gain.setValueAtTime(0.2, now + (idx * 0.12));
+          gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + (idx * 0.12));
+          osc.stop(now + (idx * 0.12) + 0.35);
+        });
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    }
+  };
+
+  // Broadcast Channel setup for tabs
+  let broadcastChannel = null;
+  if (typeof BroadcastChannel !== 'undefined') {
+    broadcastChannel = new BroadcastChannel(CHANNEL_NAME);
+  }
+
+  const listeners = [];
+
+  function emit(eventType, payload) {
+    const message = { type: eventType, payload, timestamp: Date.now() };
+
+    if (broadcastChannel) {
+      broadcastChannel.postMessage(message);
+    }
+
+    try {
+      localStorage.setItem('kodadeats_last_event', JSON.stringify(message));
+    } catch (e) {}
+
+    listeners.forEach(fn => fn(message));
+  }
+
+  if (broadcastChannel) {
+    broadcastChannel.onmessage = (event) => {
+      listeners.forEach(fn => fn(event.data));
+    };
+  }
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'kodadeats_last_event' && e.newValue) {
+      try {
+        const msg = JSON.parse(e.newValue);
+        listeners.forEach(fn => fn(msg));
+      } catch (err) {}
+    }
+  });
+
+  // Web Notification & Haptic Vibration (Zomato-grade proactive alerts)
+  function requestNotificationPermission() {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then(perm => {
+          console.log('[Notification] Permission status:', perm);
+        }).catch(() => {});
+      }
+    }
+  }
+
+  function notifyUser(title, body, icon = 'icon-192.png') {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+          body,
+          icon,
+          badge: icon,
+          vibrate: [200, 100, 200],
+          tag: 'kodadeats_live_alert'
+        });
+      }
+    } catch (e) {
+      console.warn('Notification error:', e);
+    }
+  }
+
+  // Native WebSocket Realtime Listener via Socket.io (instant sub-10ms delivery)
+  if (typeof io !== 'undefined') {
+    try {
+      const socket = io();
+      socket.on('ORDER_PLACED', (order) => {
+        const local = getAllOrders();
+        if (!local.find(o => o.id === order.id)) {
+          local.unshift(order);
+          saveAllOrders(local);
+          emit('ORDER_PLACED', order);
+        }
+      });
+      socket.on('ORDER_UPDATED', (order) => {
+        const local = getAllOrders();
+        const idx = local.findIndex(o => o.id === order.id);
+        if (idx !== -1) {
+          local[idx] = order;
+          saveAllOrders(local);
+          emit('ORDER_UPDATED', order);
+          emit(order.status, order);
+        }
+      });
+      socket.on('DELIVERED', (order) => {
+        emit('ORDER_DELIVERED', order);
+      });
+    } catch (e) {
+      console.warn('[Socket.io] Fallback to cloud polling:', e);
+    }
+  }
+
+  // User Profile & Authentication Management
+  function getCurrentUser() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setCurrentUser(user) {
+    try {
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(user));
+      emit('USER_LOGGED_IN', user);
+    } catch (e) {}
+  }
+
+  function logoutUser() {
+    try {
+      localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+      emit('USER_LOGGED_OUT', null);
+    } catch (e) {}
+  }
+
+  // Real 6-Digit OTP Generator, SMS Dispatch & WebOTP Engine
+  function generateOtp(phone) {
+    if (!phone) return null;
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpData = {
+      phone: cleanPhone,
+      code: code,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + (5 * 60 * 1000) // 5 minutes validity
+    };
+    try {
+      localStorage.setItem('kodadeats_otp_' + cleanPhone, JSON.stringify(otpData));
+    } catch (e) {}
+
+    // Dispatch to real SMS Gateway backend if online
+    if (typeof fetch !== 'undefined') {
+      fetch('/api/auth/send-otp-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      }).then(r => r.json()).then(data => {
+        if (data && data.smsDelivered) {
+          console.log('✅ Real SMS sent via Gateway to +91', cleanPhone);
+        }
+      }).catch(e => {});
+    }
+
+    showOtpBanner(cleanPhone, code);
+    return otpData;
+  }
+
+  // WebOTP API: Native Android Auto-Fill from SMS (Same as Zomato & Swiggy)
+  function listenForWebOtp(inputElementId, onOtpReceived) {
+    if ('OTPCredential' in window && navigator.credentials) {
+      const ac = new AbortController();
+      navigator.credentials.get({
+        otp: { transport: ['sms'] },
+        signal: ac.signal
+      }).then(otp => {
+        if (otp && otp.code) {
+          const input = document.getElementById(inputElementId);
+          if (input) {
+            input.value = otp.code;
+          }
+          if (typeof onOtpReceived === 'function') {
+            onOtpReceived(otp.code);
+          }
+        }
+      }).catch(err => {
+        console.log('[WebOTP] Listening ended or unsupported:', err.message);
+      });
+    }
+  }
+
+  function verifyOtp(phone, inputOtp) {
+    if (!phone || !inputOtp) return { success: false, message: 'Please enter mobile number and 6-digit OTP' };
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const storedStr = localStorage.getItem('kodadeats_otp_' + cleanPhone);
+    if (!storedStr) {
+      return { success: false, message: 'OTP expired or not requested. Please tap Resend OTP.' };
+    }
+    try {
+      const stored = JSON.parse(storedStr);
+      if (Date.now() > stored.expiresAt) {
+        localStorage.removeItem('kodadeats_otp_' + cleanPhone);
+        return { success: false, message: 'OTP expired! Please generate a new OTP.' };
+      }
+      if (stored.code !== inputOtp.toString().trim()) {
+        return { success: false, message: 'Incorrect OTP! Please check the 6-digit code.' };
+      }
+      localStorage.removeItem('kodadeats_otp_' + cleanPhone);
+      return { success: true };
+    } catch (e) {
+      return { success: false, message: 'OTP verification error. Please try again.' };
+    }
+  }
+
+  function showOtpBanner(phone, code) {
+    const existing = document.getElementById('kodadOtpToast');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'kodadOtpToast';
+    banner.className = 'fixed top-4 inset-x-4 sm:inset-x-auto sm:right-4 z-[200] max-w-sm bg-slate-950 text-white p-4 rounded-3xl shadow-2xl border-2 border-emerald-500 animate-in fade-in slide-in-from-top-4 space-y-2.5 font-sans';
+    banner.innerHTML = `
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base">💬</div>
+          <div>
+            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block">SMS Verification • KodadEats</span>
+            <h5 class="text-xs font-bold text-slate-200">OTP for +91 ${phone}</h5>
+          </div>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="text-slate-400 hover:text-white text-xs w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center">✕</button>
+      </div>
+      <div class="bg-slate-900/90 p-3 rounded-2xl border border-slate-800 text-center">
+        <span class="text-slate-400 text-[11px] block font-medium">Your One-Time Password is:</span>
+        <span class="text-3xl font-black text-amber-300 tracking-widest block select-all font-mono py-0.5">${code}</span>
+        <span class="text-[10px] text-emerald-400 block font-semibold">Valid for 5 minutes</span>
+      </div>
+      <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-800/80">
+        <button onclick="navigator.clipboard && navigator.clipboard.writeText('${code}'); this.textContent='✓ Copied!';" class="text-blue-400 hover:text-blue-300 font-extrabold flex items-center gap-1">
+          <span>📋</span>
+          <span>Copy OTP</span>
+        </button>
+        <a href="https://wa.me/91${phone}?text=${encodeURIComponent('Your KodadEats verification OTP code is: ' + code)}" target="_blank" class="text-emerald-400 hover:text-emerald-300 font-extrabold flex items-center gap-1">
+          <span>📲</span>
+          <span>WhatsApp OTP</span>
+        </a>
+      </div>
+    `;
+    document.body.appendChild(banner);
+    Sounds.playBell();
+
+    setTimeout(() => {
+      if (banner && banner.parentElement) {
+        banner.remove();
+      }
+    }, 15000);
+  }
+
+  // Admin Authorization Gate (Restricted to Owner only)
+  function isAdminAuthorized(phone) {
+    if (!phone) return false;
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    return ADMIN_AUTHORIZED_PHONES.includes(cleanPhone);
+  }
+
+  function getAdminSession() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_ADMIN_AUTH);
+      if (!data) return null;
+      const parsed = JSON.parse(data);
+      if (parsed && isAdminAuthorized(parsed.phone)) {
+        return parsed;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setAdminSession(phone) {
+    if (!isAdminAuthorized(phone)) return false;
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const session = {
+      phone: cleanPhone,
+      name: cleanPhone === '9640103505' ? 'Admin (9640103505)' : 'Admin (9182348241)',
+      role: 'admin',
+      loginTime: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY_ADMIN_AUTH, JSON.stringify(session));
+      emit('ADMIN_LOGGED_IN', session);
+    } catch (e) {}
+    return session;
+  }
+
+  function logoutAdmin() {
+    try {
+      localStorage.removeItem(STORAGE_KEY_ADMIN_AUTH);
+      emit('ADMIN_LOGGED_OUT', null);
+    } catch (e) {}
+  }
+
+  // Commercial Customer Profiles (No demo names)
+  function getRegisteredCustomers() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function getCustomerByPhone(phone) {
+    if (!phone) return null;
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const customers = getRegisteredCustomers();
+    return customers.find(c => c.phone === cleanPhone) || null;
+  }
+
+  function saveCustomerProfile(profile) {
+    if (!profile || !profile.phone) return null;
+    const cleanPhone = profile.phone.replace(/\D/g, '').slice(-10);
+    const customers = getRegisteredCustomers();
+    const idx = customers.findIndex(c => c.phone === cleanPhone);
+    const fullProfile = {
+      phone: cleanPhone,
+      name: profile.name || 'Customer (' + cleanPhone.slice(-4) + ')',
+      email: profile.email || `${cleanPhone}@kodadeats.com`,
+      address: profile.address || 'Kodad',
+      landmark: profile.landmark || 'Balaji Nagar, Kodad',
+      role: 'customer',
+      isLoggedIn: true,
+      lastActive: new Date().toISOString()
+    };
+    if (idx >= 0) {
+      customers[idx] = Object.assign(customers[idx], fullProfile);
+    } else {
+      customers.push(fullProfile);
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(customers));
+    } catch (e) {}
+    setCurrentUser(fullProfile);
+    return fullProfile;
+  }
+
+  // Dynamic Captains Management (No hardcoded demo riders)
+  function getCaptains() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_CAPTAINS);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCaptains(captains) {
+    try {
+      localStorage.setItem(STORAGE_KEY_CAPTAINS, JSON.stringify(captains));
+    } catch (e) {}
+  }
+
+  function getCurrentCaptain() {
+    try {
+      const tabCapId = sessionStorage.getItem('kodadeats_tab_captain_id');
+      if (tabCapId) {
+        const captains = getCaptains();
+        const tabCap = captains.find(c => c.id === tabCapId);
+        if (tabCap) return tabCap;
+      }
+      const data = localStorage.getItem(STORAGE_KEY_CURRENT_CAPTAIN);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setCurrentCaptain(captain) {
+    try {
+      if (captain) {
+        sessionStorage.setItem('kodadeats_tab_captain_id', captain.id);
+        localStorage.setItem(STORAGE_KEY_CURRENT_CAPTAIN, JSON.stringify(captain));
+      } else {
+        sessionStorage.removeItem('kodadeats_tab_captain_id');
+        localStorage.removeItem(STORAGE_KEY_CURRENT_CAPTAIN);
+      }
+      emit('CAPTAIN_LOGGED_IN', captain);
+    } catch (e) {}
+  }
+
+  function logoutCaptain() {
+    try {
+      sessionStorage.removeItem('kodadeats_tab_captain_id');
+      localStorage.removeItem(STORAGE_KEY_CURRENT_CAPTAIN);
+      emit('CAPTAIN_LOGGED_OUT', null);
+    } catch (e) {}
+  }
+
+  function getCaptainById(id) {
+    const captains = getCaptains();
+    return captains.find(c => c.id === id) || null;
+  }
+
+  function getCaptainByPhone(phone) {
+    const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
+    const captains = getCaptains();
+    return captains.find(c => c.phone === cleanPhone) || null;
+  }
+
+  function switchCaptain(idOrPhone) {
+    const captains = getCaptains();
+    const clean = (idOrPhone || '').toString().trim();
+    const cleanPhone = clean.replace(/\D/g, '').slice(-10);
+    const cap = captains.find(c => c.id === clean || (cleanPhone && c.phone === cleanPhone));
+    if (cap) {
+      setCurrentCaptain(cap);
+      return cap;
+    }
+    return null;
+  }
+
+  // Restaurant Active / Inactive Open Status Management (Requirement 2)
+  function getRestaurantStatus(restId, defaultOpen = true) {
+    try {
+      const map = JSON.parse(localStorage.getItem(STORAGE_KEY_REST_STATUS) || '{}');
+      if (map[restId] !== undefined) return !!map[restId];
+    } catch (e) {}
+    return defaultOpen;
+  }
+
+  function setRestaurantStatus(restId, isOpen) {
+    try {
+      const map = JSON.parse(localStorage.getItem(STORAGE_KEY_REST_STATUS) || '{}');
+      map[restId] = !!isOpen;
+      localStorage.setItem(STORAGE_KEY_REST_STATUS, JSON.stringify(map));
+      emit('RESTAURANT_STATUS_CHANGED', { restId, isOpen: !!isOpen });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Dynamic Restaurants, Dhabas & Tiffin Centres Management
+  function getRestaurants() {
+    let list = [];
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_RESTAURANTS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+      }
+    } catch (e) {}
+
+    const baseList = (typeof KODAD_DATA !== 'undefined' && KODAD_DATA.restaurants) ? KODAD_DATA.restaurants : [];
+    const map = new Map();
+    baseList.forEach(r => map.set(r.id, { ...r }));
+    list.forEach(r => map.set(r.id, { ...(map.get(r.id) || {}), ...r }));
+    const merged = Array.from(map.values());
+
+    return merged.map(r => ({
+      ...r,
+      isOpen: getRestaurantStatus(r.id, r.isOpen !== false)
+    }));
+  }
+
+  function saveRestaurant(data) {
+    const list = getRestaurants();
+    const id = data.id || ('rest-' + (list.length + 1));
+    const newRest = {
+      id: id,
+      name: data.name,
+      location: data.location || 'Kodad',
+      phone: data.phone || '9640103505',
+      ownerName: data.ownerName || 'Partner Owner',
+      cuisine: data.cuisine || 'Kodad Special',
+      timings: data.timings || '10:00 AM - 10:30 PM',
+      rating: data.rating || 4.8,
+      deliveryTime: data.deliveryTime || '20-25 mins',
+      distance: data.distance || '1.0 km',
+      badge: data.badge || 'Verified Partner',
+      isOpen: data.isOpen !== undefined ? !!data.isOpen : true,
+      image: data.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+      lat: data.lat || 16.9972,
+      lng: data.lng || 79.9678
+    };
+    const idx = list.findIndex(r => r.id === id);
+    if (idx >= 0) list[idx] = newRest; else list.push(newRest);
+    try { localStorage.setItem(STORAGE_KEY_RESTAURANTS, JSON.stringify(list)); } catch (e) {}
+    if (typeof KODAD_DATA !== 'undefined') KODAD_DATA.restaurants = list;
+    emit('RESTAURANT_SAVED', newRest);
+    return newRest;
+  }
+
+  function getProducts() {
+    let list = [];
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_PRODUCTS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+      }
+    } catch (e) {}
+
+    const baseList = (typeof KODAD_DATA !== 'undefined' && KODAD_DATA.products) ? KODAD_DATA.products : [];
+    const map = new Map();
+    baseList.forEach(p => map.set(p.id, { ...p }));
+    list.forEach(p => map.set(p.id, { ...(map.get(p.id) || {}), ...p }));
+    return Array.from(map.values());
+  }
+
+  function saveProduct(data) {
+    const list = getProducts();
+    const id = data.id || ('item-' + (list.length + 1));
+    const newProd = {
+      id: id,
+      restId: data.restId,
+      restName: data.restName,
+      category: data.category || 'all',
+      name: data.name,
+      price: Number(data.price) || 100,
+      originalPrice: Number(data.originalPrice) || Number(data.price) + 20,
+      isVeg: data.isVeg !== undefined ? !!data.isVeg : true,
+      rating: data.rating || 4.8,
+      description: data.description || 'Freshly prepared hot & delicious.',
+      image: data.image || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=600&q=80'
+    };
+    const idx = list.findIndex(p => p.id === id);
+    if (idx >= 0) list[idx] = newProd; else list.push(newProd);
+    try { localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(list)); } catch (e) {}
+    if (typeof KODAD_DATA !== 'undefined') KODAD_DATA.products = list;
+    emit('PRODUCT_SAVED', newProd);
+    return newProd;
+  }
+
+  function registerCaptain(data) {
+    const captains = getCaptains();
+    const cleanPhone = (data.phone || '').replace(/\D/g, '').slice(-10);
+    let cap = captains.find(c => c.phone === cleanPhone);
+    if (!cap) {
+      // Generate clean sequential Rider ID: CAP-1001, CAP-1002, etc. (up to 100+ fleet)
+      let nextNum = 1001;
+      const existingNums = captains
+        .map(c => parseInt((c.id || '').replace(/\D/g, ''), 10))
+        .filter(n => !isNaN(n) && n >= 1000);
+      if (existingNums.length > 0) {
+        nextNum = Math.max(...existingNums) + 1;
+      }
+      const id = 'CAP-' + nextNum;
+      cap = {
+        id: id,
+        name: data.name || `Captain ${nextNum}`,
+        phone: cleanPhone,
+        vehicle: data.vehicle || 'Hero Splendor (Kodad)',
+        rating: 5.0,
+        ordersCompleted: 0,
+        earningsTotal: 0,
+        isOnDuty: true,
+        registeredAt: new Date().toISOString()
+      };
+      captains.push(cap);
+    } else {
+      if (data.name) cap.name = data.name;
+      if (data.vehicle) cap.vehicle = data.vehicle;
+      cap.isOnDuty = true;
+    }
+    saveCaptains(captains);
+    setCurrentCaptain(cap);
+    return cap;
+  }
+
+  function captainAcceptOrder(orderId, captain) {
+    const order = getOrderById(orderId);
+    if (!order) return null;
+    order.status = 'CAPTAIN_ASSIGNED';
+    order.captain = {
+      id: captain.id,
+      name: captain.name,
+      phone: captain.phone,
+      vehicle: captain.vehicle
+    };
+    order.history.push({
+      status: 'CAPTAIN_ASSIGNED',
+      title: `Accepted by Captain: ${captain.name} (${captain.vehicle})`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    upsertOrder(order);
+    Sounds.playRiderAlert();
+    emit('CAPTAIN_ASSIGNED', order);
+    emit('ORDER_UPDATED', order);
+    return order;
+  }
+
+  function captainDeclineOrder(orderId, captainId) {
+    const order = getOrderById(orderId);
+    if (!order) return null;
+    if (!order.declinedCaptains) order.declinedCaptains = [];
+    if (!order.declinedCaptains.includes(captainId)) {
+      order.declinedCaptains.push(captainId);
+    }
+    upsertOrder(order);
+    emit('ORDER_DECLINED_BY_CAPTAIN', { orderId, captainId });
+    return order;
+  }
+
+  // Database Management Helpers
+  function getAllOrders() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_ORDERS);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function getOrderById(id) {
+    const orders = getAllOrders();
+    return orders.find(o => o.id === id) || null;
+  }
+
+  function saveAllOrders(orders) {
+    try {
+      localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
+    } catch (e) {
+      console.error('Error saving orders:', e);
+    }
+  }
+
+  function upsertOrder(order) {
+    const orders = getAllOrders();
+    const idx = orders.findIndex(o => o.id === order.id);
+    if (idx >= 0) {
+      orders[idx] = order;
+    } else {
+      orders.unshift(order);
+    }
+    saveAllOrders(orders);
+    return order;
+  }
+
+  // WhatsApp Order Formatter
+  function createWhatsAppOrderMessage(order) {
+    const itemsText = order.items.map(i => `• ${i.quantity}x ${i.name} (₹${i.price * i.quantity})`).join('\n');
+    const gpsLink = (order.customer.lat && order.customer.lng) 
+      ? `\n*Live House GPS Navigation:* https://www.google.com/maps/dir/?api=1&destination=${order.customer.lat},${order.customer.lng}` 
+      : '';
+    return `🛵 *KODADEATS ORDER ALERT* 🛵
+━━━━━━━━━━━━━━━━━━
+*Order ID:* #${order.id}
+*Restaurant:* ${order.restaurant.name}
+*Time:* ${order.timeFormatted || 'Now'}
+
+*ITEMS ORDERED:*
+${itemsText}
+
+*BILL DETAILS:*
+Subtotal: ₹${order.subtotal}
+Delivery Fee: ₹${order.deliveryFee}
+*TOTAL AMOUNT:* ₹${order.total}
+*Payment:* ${order.paymentMethod}
+
+━━━━━━━━━━━━━━━━━━
+*CUSTOMER IN KODAD:*
+*Name:* ${order.customer.name}
+*Phone:* ${order.customer.phone}
+*Address:* ${order.customer.address}
+*Landmark:* ${order.customer.landmark}${gpsLink}
+━━━━━━━━━━━━━━━━━━
+_Please prepare and dispatch KodadEats Captain!_`;
+  }
+
+  function getWhatsAppUrl(order, targetPhone = '') {
+    const text = encodeURIComponent(createWhatsAppOrderMessage(order));
+    const phoneParam = targetPhone ? `phone=91${targetPhone.replace(/\D/g, '').slice(-10)}&` : '';
+    return `https://api.whatsapp.com/send?${phoneParam}text=${text}`;
+  }
+
+  // Order Lifecycle Operations
+  function placeOrder(orderData) {
+    const orderId = 'KD-' + Math.floor(1000 + Math.random() * 9000);
+    // Doorstep Delivery Confirmation OTP (The Zomato Way: 4-digit code given to captain at doorstep)
+    const deliveryOtp = orderData.deliveryOtp || Math.floor(1000 + Math.random() * 9000).toString();
+    const newOrder = {
+      id: orderId,
+      deliveryOtp: deliveryOtp,
+      createdAt: new Date().toISOString(),
+      timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'PLACED',
+      customer: orderData.customer,
+      restaurant: orderData.restaurant,
+      items: orderData.items,
+      subtotal: orderData.subtotal,
+      deliveryFee: orderData.deliveryFee !== undefined ? orderData.deliveryFee : 30,
+      packagingFee: 0,
+      discount: orderData.discount || 0,
+      total: orderData.total,
+      paymentMethod: orderData.paymentMethod || 'Cash on Delivery (COD)',
+      paymentStatus: orderData.paymentMethod === 'Cash on Delivery (COD)' ? 'Pending' : 'Paid Online (UPI)',
+      notes: orderData.notes || '',
+      captain: null,
+      history: [
+        { status: 'PLACED', title: 'Order Received in Kodad', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+      ]
+    };
+
+    upsertOrder(newOrder);
+    localStorage.setItem(STORAGE_KEY_ACTIVE_ORDER, orderId);
+
+    // Sync to Vercel Serverless & Cloud Database
+    sendApiRequest('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newOrder)
+    });
+
+    Sounds.playSuccessChime();
+    emit('ORDER_PLACED', newOrder);
+    return newOrder;
+  }
+
+  function acceptOrder(orderId, prepTimeMinutes = 20) {
+    const order = getOrderById(orderId);
+    if (!order) return null;
+
+    order.status = 'ACCEPTED';
+    order.prepTime = prepTimeMinutes;
+    order.history.push({
+      status: 'ACCEPTED',
+      title: `Accepted by Kitchen (Prep: ~${prepTimeMinutes} mins)`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+
+    upsertOrder(order);
+
+    sendApiRequest(`/api/orders/${orderId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'ACCEPTED', prepTime: prepTimeMinutes })
+    });
+
+    Sounds.playIncomingOrderSiren();
+    emit('ORDER_ACCEPTED', order);
+    return order;
+  }
+
+  function assignCaptain(orderId, captainId) {
+    const order = getOrderById(orderId);
+    if (!order) return null;
+
+    const allCaptains = getCaptains();
+    const captain = allCaptains.find(c => c.id === captainId) || (typeof KODAD_DATA !== 'undefined' && KODAD_DATA.captains && KODAD_DATA.captains.find(c => c.id === captainId));
+    if (!captain) return null;
+
+    order.status = 'CAPTAIN_ASSIGNED';
+    order.captain = {
+      id: captain.id,
+      name: captain.name,
+      phone: captain.phone,
+      vehicle: captain.vehicle
+    };
+    order.history.push({
+      status: 'CAPTAIN_ASSIGNED',
+      title: `Captain Assigned: ${captain.name} (${captain.vehicle})`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+
+    upsertOrder(order);
+
+    sendApiRequest(`/api/orders/${orderId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'CAPTAIN_ASSIGNED', captain: order.captain })
+    });
+
+    Sounds.playRiderAlert();
+    emit('CAPTAIN_ASSIGNED', order);
+    return order;
+  }
+
+  function markPickedUp(orderId) {
+    const order = getOrderById(orderId);
+    if (!order) return null;
+
+    order.status = 'PICKED_UP';
+    order.history.push({
+      status: 'PICKED_UP',
+      title: 'Order Picked Up - Captain En Route to Customer',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+
+    upsertOrder(order);
+
+    sendApiRequest(`/api/orders/${orderId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'PICKED_UP' })
+    });
+
+    Sounds.playRiderAlert();
+    emit('ORDER_PICKED_UP', order);
+    return order;
+  }
+
+  function markDelivered(orderId) {
+    const order = getOrderById(orderId);
+    if (!order) return null;
+
+    order.status = 'DELIVERED';
+    order.paymentStatus = 'Paid';
+    order.deliveredAt = new Date().toISOString();
+    order.history.push({
+      status: 'DELIVERED',
+      title: 'Order Delivered Successfully to Customer!',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+
+    // Credit ₹30 payout to assigned captain
+    if (order.captain && order.captain.id) {
+      const captains = getCaptains();
+      const cap = captains.find(c => c.id === order.captain.id);
+      if (cap) {
+        cap.ordersCompleted = (cap.ordersCompleted || 0) + 1;
+        cap.earningsTotal = (cap.earningsTotal || 0) + 30;
+        saveCaptains(captains);
+        const currentCap = getCurrentCaptain();
+        if (currentCap && currentCap.id === cap.id) {
+          setCurrentCaptain(cap);
+        }
+      }
+    }
+
+    upsertOrder(order);
+
+    sendApiRequest(`/api/orders/${orderId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'DELIVERED' })
+    });
+
+    Sounds.playSuccessChime();
+    emit('ORDER_DELIVERED', order);
+    emit('ORDER_UPDATED', order);
+    return order;
+  }
+
+  // Doorstep Delivery Confirmation OTP (The Zomato Way)
+  function verifyAndDeliverOrder(orderId, enteredOtp) {
+    const order = getOrderById(orderId);
+    if (!order) return { success: false, message: 'Order not found' };
+    if (order.status === 'DELIVERED') return { success: true, message: 'Order already delivered', order };
+
+    // Enforce 4-digit Delivery OTP if order has one
+    if (order.deliveryOtp) {
+      const cleanEntered = (enteredOtp || '').toString().trim();
+      const cleanExpected = order.deliveryOtp.toString().trim();
+      if (cleanEntered !== cleanExpected) {
+        return { 
+          success: false, 
+          message: 'Incorrect Delivery OTP! Ask the customer for the 4-digit code shown on their tracking screen.' 
+        };
+      }
+    }
+
+    const deliveredOrder = markDelivered(orderId);
+    return { success: true, order: deliveredOrder };
+  }
+
+  // 5-Minute Silent Cancellation Rule (Requirement 8)
+  function canCancelOrder(orderId) {
+    const order = getOrderById(orderId);
+    if (!order) return { allowed: false, reason: 'Order not found' };
+    if (order.status === 'DELIVERED') {
+      return { allowed: false, reason: 'Order has already been delivered.' };
+    }
+    if (order.status === 'CANCELLED') {
+      return { allowed: false, reason: 'Order is already cancelled.' };
+    }
+    const createdTime = order.createdAt ? new Date(order.createdAt).getTime() : Date.now();
+    const elapsedMinutes = (Date.now() - createdTime) / (60 * 1000);
+    if (elapsedMinutes > 5) {
+      return {
+        allowed: false,
+        reason: 'Order has already been accepted and is being prepared in the kitchen! It can no longer be cancelled. For urgent modifications, please call helpline: 9640103505'
+      };
+    }
+    return { allowed: true, elapsedMinutes };
+  }
+
+  function cancelOrder(orderId, reason = 'Cancelled') {
+    const order = getOrderById(orderId);
+    if (!order) return null;
+
+    order.status = 'CANCELLED';
+    order.cancelReason = reason;
+    order.history.push({
+      status: 'CANCELLED',
+      title: `Order Cancelled: ${reason}`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+
+    upsertOrder(order);
+
+    sendApiRequest(`/api/orders/${orderId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'CANCELLED', cancelReason: reason })
+    });
+
+    emit('ORDER_CANCELLED', order);
+    return order;
+  }
+
+  // Cloud Sync Engine (Guarantees Realtime Sync on Vercel & MongoDB Atlas without WebSocket limits)
+  function syncCloudOrders() {
+    sendApiRequest('/api/orders')
+      .then(res => res && res.json ? res.json() : null)
+      .then(data => {
+        if (data && data.success && Array.isArray(data.data)) {
+          const localOrders = getAllOrders();
+          let changed = false;
+          data.data.forEach(cloudOrder => {
+            const idx = localOrders.findIndex(o => o.id === cloudOrder.id);
+            if (idx === -1) {
+              localOrders.unshift(cloudOrder);
+              changed = true;
+              emit('ORDER_PLACED', cloudOrder);
+            } else if (localOrders[idx].status !== cloudOrder.status) {
+              localOrders[idx] = cloudOrder;
+              changed = true;
+              emit('ORDER_UPDATED', cloudOrder);
+              emit(cloudOrder.status, cloudOrder);
+            }
+          });
+          if (changed) {
+            saveAllOrders(localOrders);
+          }
+        }
+      })
+      .catch(() => {});
+  }
+
+  // Auto-sync in background every 3.5 seconds
+  if (typeof window !== 'undefined') {
+    setInterval(syncCloudOrders, 3500);
+  }
+
+  // Customer Order History & Loyalty Operations
+  function getUserOrderHistory(phone = '') {
+    const all = getAllOrders();
+    if (!phone) return all;
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    return all.filter(o => {
+      const oPhone = (o.customer?.phone || '').replace(/\D/g, '').slice(-10);
+      return !cleanPhone || oPhone === cleanPhone;
+    });
+  }
+
+  function getUserDeliveredCount(phone = '') {
+    const history = getUserOrderHistory(phone);
+    return history.filter(o => o.status === 'DELIVERED').length;
+  }
+
+  function validateCoupon(code, subtotal, phone = '') {
+    const cleanCode = (code || '').toUpperCase().trim();
+    const deliveredCount = getUserDeliveredCount(phone);
+
+    // Rule: Until completing 10 orders, NO coupons can be unlocked or used!
+    if (deliveredCount < 10) {
+      return { 
+        valid: false, 
+        discount: 0,
+        message: `Coupons locked! Complete 10 orders to unlock VIP rewards (${deliveredCount}/10 completed).` 
+      };
+    }
+
+    if (cleanCode === 'KODAD50') {
+      if (subtotal < 500) {
+        return { valid: false, discount: 0, message: 'KODAD50 requires minimum food bill of ₹500.' };
+      }
+      return { valid: true, discount: 50, message: '✓ ₹50 VIP Reward Applied!' };
+    }
+
+    if (cleanCode === 'KODAD75') {
+      if (deliveredCount < 14) {
+        return { valid: false, discount: 0, message: `KODAD75 unlocks on your 15th order (${deliveredCount} completed).` };
+      }
+      if (subtotal < 700) {
+        return { valid: false, discount: 0, message: 'KODAD75 requires minimum food bill of ₹700.' };
+      }
+      return { valid: true, discount: 75, message: '✓ ₹75 VIP Reward Applied!' };
+    }
+
+    if (cleanCode === 'KODAD100') {
+      if (deliveredCount < 19) {
+        return { valid: false, discount: 0, message: `KODAD100 unlocks on your 20th order (${deliveredCount} completed).` };
+      }
+      if (subtotal < 1000) {
+        return { valid: false, discount: 0, message: 'KODAD100 requires minimum food bill of ₹1000.' };
+      }
+      return { valid: true, discount: 100, message: '✓ ₹100 VIP Mega Reward Applied!' };
+    }
+
+    return { valid: false, discount: 0, message: 'Invalid coupon code.' };
+  }
+
+  function getUpiPaymentDetails(amount, orderId = 'KD-0000') {
+    const upiId = (typeof KODAD_DATA !== 'undefined' && KODAD_DATA.upiConfig && KODAD_DATA.upiConfig.upiId) 
+      ? KODAD_DATA.upiConfig.upiId 
+      : 'manda.nani07-2@okaxis';
+    const merchantName = (typeof KODAD_DATA !== 'undefined' && KODAD_DATA.upiConfig && KODAD_DATA.upiConfig.merchantName)
+      ? KODAD_DATA.upiConfig.merchantName
+      : 'Nani Manda';
+    const gpayQr = (typeof KODAD_DATA !== 'undefined' && KODAD_DATA.upiConfig && KODAD_DATA.upiConfig.gpayQrImage)
+      ? KODAD_DATA.upiConfig.gpayQrImage
+      : 'upi-gpay-qr.jpg';
+    const phonePeQr = (typeof KODAD_DATA !== 'undefined' && KODAD_DATA.upiConfig && KODAD_DATA.upiConfig.phonePeQrImage)
+      ? KODAD_DATA.upiConfig.phonePeQrImage
+      : 'upi-phonepe-qr.jpg';
+    
+    const note = encodeURIComponent('KodadEats Order #' + orderId);
+    const upiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${note}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUri)}`;
+
+    return {
+      upiId,
+      merchantName,
+      amount,
+      orderId,
+      upiUri,
+      qrUrl,
+      gpayQrImage: gpayQr,
+      phonePeQrImage: phonePeQr,
+      intentPhonePe: `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${note}`,
+      intentGPay: `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${note}`,
+      intentPaytm: `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${note}`,
+      intentUniversal: upiUri
+    };
+  }
+
+  return {
+    Sounds,
+    emit,
+    on: function(callback) {
+      listeners.push(callback);
+    },
+    getCurrentUser,
+    setCurrentUser,
+    logoutUser,
+    recordAppInstall,
+    getTotalInstalls,
+    getTodayMetrics,
+    generateOtp,
+    verifyOtp,
+    listenForWebOtp,
+    showOtpBanner,
+    isAdminAuthorized,
+    getAdminSession,
+    setAdminSession,
+    logoutAdmin,
+    ADMIN_AUTHORIZED_PHONES,
+    getRegisteredCustomers,
+    getCustomerByPhone,
+    saveCustomerProfile,
+    getCaptains,
+    saveCaptains,
+    getCurrentCaptain,
+    setCurrentCaptain,
+    logoutCaptain,
+    getCaptainById,
+    getCaptainByPhone,
+    switchCaptain,
+    registerCaptain,
+    getRestaurants,
+    saveRestaurant,
+    getRestaurantStatus,
+    setRestaurantStatus,
+    getProducts,
+    saveProduct,
+    captainAcceptOrder,
+    captainDeclineOrder,
+    getUserOrderHistory,
+    getUserDeliveredCount,
+    validateCoupon,
+    getUpiPaymentDetails,
+    getAllOrders,
+    getOrderById,
+    getActiveOrderId: () => {
+      try { return localStorage.getItem(STORAGE_KEY_ACTIVE_ORDER); } catch (e) { return null; }
+    },
+    setActiveOrderId: (id) => {
+      try { localStorage.setItem(STORAGE_KEY_ACTIVE_ORDER, id); } catch (e) {}
+    },
+    placeOrder,
+    acceptOrder,
+    assignCaptain,
+    markPickedUp,
+    markDelivered,
+    verifyAndDeliverOrder,
+    cancelOrder,
+    canCancelOrder,
+    getWhatsAppUrl,
+    requestNotificationPermission,
+    notifyUser,
+    setServerUrl: (url) => {
+      serverUrl = url;
+      localStorage.setItem(STORAGE_KEY_SERVER_URL, url);
+    },
+    getServerUrl: () => serverUrl
+  };
+})();

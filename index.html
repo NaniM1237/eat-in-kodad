@@ -1,0 +1,3186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eat.in - Instant Delivery across Kodad (కొదాడ)</title>
+  
+  <!-- PWA & Mobile App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FF5A36">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Eat.in">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS for Live Kodad Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- Canvas Confetti & Leaflet JS -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Razorpay Standard Checkout Library (Requirement 8) -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Splash Screen Letter Drop Animation (Requirement 7) */
+    @keyframes letterDrop {
+      0% { transform: translateY(-70px) scale(0.5); opacity: 0; }
+      60% { transform: translateY(12px) scale(1.1); opacity: 1; }
+      80% { transform: translateY(-4px) scale(0.98); }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .splash-letter {
+      display: inline-block;
+      opacity: 0;
+      animation: letterDrop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* Normal Yellow Scooty Riding ON The Line (Left to Right, in sync with Yellow Fill) */
+    @keyframes normalScootyRide {
+      0% {
+        left: -12px;
+        opacity: 0;
+      }
+      4% {
+        opacity: 1;
+      }
+      92% {
+        opacity: 1;
+      }
+      100% {
+        left: calc(100% - 46px);
+        opacity: 0;
+      }
+    }
+    .normal-scooty-animated {
+      opacity: 0;
+      animation: normalScootyRide 2.8s cubic-bezier(0.35, 0, 0.25, 1) 1.2s forwards;
+    }
+    .scooter-bob {
+      animation: scooterBob 0.24s ease-in-out infinite alternate;
+    }
+    @keyframes scooterBob {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-2.5px); }
+    }
+    .scooter-wheel {
+      animation: spinWheel 0.35s linear infinite;
+    }
+    @keyframes spinWheel {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Food Items Showcase Sliding Marquee (Requirement 1: Left to Right & Right to Left) */
+    @keyframes marqueeScrollLeft {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes marqueeScrollRight {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+    .marquee-track-left {
+      display: flex;
+      width: max-content;
+      animation: marqueeScrollLeft 32s linear infinite;
+    }
+    .marquee-track-right {
+      display: flex;
+      width: max-content;
+      animation: marqueeScrollRight 32s linear infinite;
+    }
+    .marquee-track-left:hover, .marquee-track-right:hover {
+      animation-play-state: paused;
+    }
+
+    #trackingMap { height: 210px; width: 100%; border-radius: 1rem; z-index: 10; }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-slate-900 pb-28 md:pb-16 antialiased select-none">
+
+  <!-- ================= 1. SPLASH SCREEN WITH LETTER-BY-LETTER DROP & LITE SCOOTER ANIMATION ================= -->
+  <div id="splashScreen" class="fixed inset-0 z-[120] bg-gradient-to-b from-[#FFFDF9] via-[#FFF8F3] to-[#FFF0E6] flex flex-col items-center justify-center text-slate-900 transition-opacity duration-500 select-none overflow-hidden">
+    <div class="text-center space-y-3 px-6 max-w-sm w-full">
+      
+      <!-- Attractive Pro Brand Emblem on top of Eat.in letters (Requirement: Premium Logo Graphic) -->
+      <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+        <!-- Ambient Warm Glow Behind Badge -->
+        <div class="absolute -inset-2 rounded-3xl bg-gradient-to-tr from-orange-500/30 via-amber-400/25 to-orange-400/20 blur-lg animate-pulse"></div>
+        
+        <!-- Premium Glassmorphic / Gradient Emblem -->
+        <div class="relative w-20 h-20 rounded-3xl bg-gradient-to-tr from-[#FF5A36] via-[#FF7347] to-[#FFA048] flex items-center justify-center shadow-xl shadow-orange-500/30 ring-4 ring-orange-100/90 overflow-hidden">
+          
+          <!-- Inner Top Gloss Highlight -->
+          <div class="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
+
+          <!-- Professional Food Delivery Vector Graphic -->
+          <svg class="w-12 h-12 drop-shadow-md" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Cloche Dome Gold Gradient -->
+              <linearGradient id="clocheGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FFF3B0" />
+                <stop offset="40%" stop-color="#FFD166" />
+                <stop offset="100%" stop-color="#F77F00" />
+              </linearGradient>
+              <!-- Silver Platter Gradient -->
+              <linearGradient id="platterSilver" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#E2E8F0" />
+                <stop offset="50%" stop-color="#FFFFFF" />
+                <stop offset="100%" stop-color="#CBD5E1" />
+              </linearGradient>
+              <!-- Steam Glow -->
+              <linearGradient id="steamGrad" x1="50%" y1="100%" x2="50%" y2="0%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            <!-- Rising Steam Swirls -->
+            <path d="M 28 17 C 26 13 30 11 29 7" stroke="url(#steamGrad)" stroke-width="2" stroke-linecap="round" />
+            <path d="M 35 15 C 33 12 37 10 36 6" stroke="url(#steamGrad)" stroke-width="2" stroke-linecap="round" />
+
+            <!-- Golden Serving Cloche Dome -->
+            <path d="M 16 38 C 16 26 23 20 32 20 C 41 20 48 26 48 38 Z" fill="url(#clocheGold)" />
+            <!-- Cloche Highlight Reflection Arc -->
+            <path d="M 20 36 C 21 28 26 23 33 22" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.65" />
+
+            <!-- Cloche Sphere Handle -->
+            <circle cx="32" cy="18" r="3.2" fill="#FFE082" stroke="#F57C00" stroke-width="1" />
+            <circle cx="31.2" cy="17.2" r="1" fill="#FFFFFF" />
+
+            <!-- Base Serving Platter (Silver Tray) -->
+            <rect x="11" y="38" width="42" height="4.5" rx="2.25" fill="url(#platterSilver)" stroke="#0F172A" stroke-width="1.2" />
+            <!-- Platter Rim Base -->
+            <path d="M 20 42.5 L 44 42.5 L 41 45.5 L 23 45.5 Z" fill="#E2E8F0" stroke="#0F172A" stroke-width="0.8" />
+
+            <!-- Sparkle Stars -->
+            <path d="M 45 14 L 46 17 L 49 18 L 46 19 L 45 22 L 44 19 L 41 18 L 44 17 Z" fill="#FFF9C4" opacity="0.9" />
+            <circle cx="18" cy="22" r="1.5" fill="#FFF9C4" opacity="0.8" />
+          </svg>
+
+        </div>
+      </div>
+
+      <!-- Letter-by-Letter Animated Name: Eat.in (Dropping sequentially) -->
+      <div class="pt-1">
+        <h1 class="text-5xl sm:text-6xl font-black tracking-tight text-slate-900 flex items-center justify-center">
+          <span class="splash-letter text-[#0F172A]" style="animation-delay: 0.10s;">E</span>
+          <span class="splash-letter text-[#0F172A]" style="animation-delay: 0.25s;">a</span>
+          <span class="splash-letter text-[#0F172A]" style="animation-delay: 0.40s;">t</span>
+          <span class="splash-letter text-[#FF5A36]" style="animation-delay: 0.55s;">.</span>
+          <span class="splash-letter text-[#FF5A36]" style="animation-delay: 0.70s;">i</span>
+          <span class="splash-letter text-[#FF5A36]" style="animation-delay: 0.85s;">n</span>
+        </h1>
+        <p class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest mt-2 flex items-center justify-center gap-1">
+          <span>Instant Delivery across Kodad</span>
+          <span>⚡</span>
+        </p>
+      </div>
+
+      <!-- The Line on top of "Connecting Kodad Stores & Riders..." with Normal Yellow Scooty & Yellow Fill -->
+      <div class="relative w-60 sm:w-68 mx-auto mt-4 mb-1">
+        
+        <!-- The Line Track: Automatically fills with bright Yellow as Scooty rolls from left to right -->
+        <div class="w-full h-2 bg-slate-200/90 rounded-full overflow-hidden shadow-inner border border-slate-300/40">
+          <div id="splashProgressBar" class="h-full bg-gradient-to-r from-amber-400 via-yellow-400 to-yellow-500 rounded-full transition-all duration-2800 ease-out shadow-sm" style="width: 0%; box-shadow: 0 0 12px rgba(250, 204, 21, 0.75);"></div>
+        </div>
+
+        <!-- Normal Yellow Scooty Rolling Directly ON That Line -->
+        <div id="splashYellowScooty" class="normal-scooty-animated absolute bottom-2 left-0 pointer-events-none">
+          <div class="scooter-bob flex items-end">
+            <svg class="w-15 h-11 sm:w-16 sm:h-12 drop-shadow-sm" viewBox="0 0 72 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Normal Scooty Bright Yellow Paint -->
+                <linearGradient id="activaYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FDE047" />
+                  <stop offset="50%" stop-color="#FACC15" />
+                  <stop offset="100%" stop-color="#EAB308" />
+                </linearGradient>
+
+                <!-- Headlight Yellow Glow Cone -->
+                <linearGradient id="headlightBeam" x1="0%" y1="50%" x2="100%" y2="50%">
+                  <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.9" />
+                  <stop offset="100%" stop-color="#FEF08A" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+
+              <!-- Glowing Headlight Beam shining forward onto the line -->
+              <polygon points="50,26 72,18 72,34" fill="url(#headlightBeam)" />
+
+              <!-- Rear Delivery Bag/Box (Red/White Delivery Box) -->
+              <rect x="5" y="14" width="16" height="16" rx="3" fill="#EF4444" stroke="#1E293B" stroke-width="1.5" />
+              <rect x="8" y="17" width="10" height="10" rx="1.5" fill="#FFFFFF" />
+              <path d="M 11 22 L 15 22 M 13 20 L 13 24" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" />
+              <!-- Rack Support Bar -->
+              <path d="M 14 30 L 22 34" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+
+              <!-- Scooty Exhaust Silencer (Silver/Black) -->
+              <path d="M 14 36 L 24 35" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+
+              <!-- Rear Scooty Body Panel (Curved Activa Yellow) -->
+              <path d="M 20 27 C 22 23 27 23 31 28 L 33 34 L 20 34 Z" fill="url(#activaYellow)" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round" />
+
+              <!-- Scooty Flat Footboard (Classic Normal Scooty Platform!) -->
+              <path d="M 23 34 L 39 34" stroke="#1E293B" stroke-width="3" stroke-linecap="round" />
+
+              <!-- Scooty Seat (Black Contoured Dual-Tone Leather Seat) -->
+              <path d="M 19 24 C 21 21 31 21 35 24 C 36 25 34 26 20 26 Z" fill="#0F172A" stroke="#1E293B" stroke-width="1" />
+
+              <!-- Front Scooty Apron / Shield (Sloping Yellow Panel) -->
+              <path d="M 39 34 L 46 22 L 44 16 L 40 18" stroke="url(#activaYellow)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M 39 34 L 46 22 L 44 16" stroke="#1E293B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+              <!-- Front Mudguard (Yellow) -->
+              <path d="M 44 32 C 45 29 49 29 51 32" stroke="url(#activaYellow)" stroke-width="3.5" stroke-linecap="round" />
+              <path d="M 44 32 C 45 29 49 29 51 32" stroke="#1E293B" stroke-width="1" stroke-linecap="round" fill="none" />
+
+              <!-- Handlebar, Cowl & Rearview Mirrors -->
+              <path d="M 46 16 L 43 14" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" />
+              <!-- Side Mirror -->
+              <circle cx="43" cy="11.5" r="1.8" fill="#64748B" stroke="#1E293B" stroke-width="1" />
+              <!-- Front Headlight on Handlebar Cowl -->
+              <rect x="46" y="14" width="4.5" height="4" rx="1.5" fill="#FEF08A" stroke="#1E293B" stroke-width="1" />
+
+              <!-- Normal Delivery Rider (Sitting Upright on Scooty) -->
+              <!-- Helmet (Yellow with Dark Visor) -->
+              <circle cx="31" cy="9.5" r="5.5" fill="#FACC15" stroke="#1E293B" stroke-width="1.5" />
+              <path d="M 31 8.5 Q 35 8.5 36 10.5" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" />
+              <!-- Torso & Arms (Navy / Slate Delivery Jacket) -->
+              <path d="M 26 15 C 26 15 30 19 34 19 C 39 19 43 16 43 16" fill="#1E293B" stroke="#FACC15" stroke-width="0.8" />
+              <!-- Arm Reaching Forward to Handlebar -->
+              <path d="M 32 19 L 42 16" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" />
+              <!-- Leg Resting on Flat Footboard -->
+              <path d="M 28 24 L 32 30 L 37 33" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+
+              <!-- Rear Wheel (Activa 10-inch Scooter Wheel) -->
+              <g class="scooter-wheel" style="transform-origin: 15px 38px;">
+                <circle cx="15" cy="38" r="8" fill="#1E293B" />
+                <circle cx="15" cy="38" r="4.5" fill="#E2E8F0" stroke="#1E293B" stroke-width="1" />
+                <circle cx="15" cy="38" r="2" fill="#FACC15" />
+                <line x1="15" y1="31" x2="15" y2="45" stroke="#94A3B8" stroke-width="1" />
+                <line x1="8" y1="38" x2="22" y2="38" stroke="#94A3B8" stroke-width="1" />
+              </g>
+
+              <!-- Front Wheel (Activa 10-inch Scooter Wheel) -->
+              <g class="scooter-wheel" style="transform-origin: 48px 38px;">
+                <circle cx="48" cy="38" r="8" fill="#1E293B" />
+                <circle cx="48" cy="38" r="4.5" fill="#E2E8F0" stroke="#1E293B" stroke-width="1" />
+                <circle cx="48" cy="38" r="2" fill="#FACC15" />
+                <line x1="48" y1="31" x2="48" y2="45" stroke="#94A3B8" stroke-width="1" />
+                <line x1="41" y1="38" x2="55" y2="38" stroke="#94A3B8" stroke-width="1" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+
+      <span class="text-[11px] text-slate-400 font-semibold block">
+        Connecting Kodad Stores & Riders...
+      </span>
+
+    </div>
+  </div>
+
+  <!-- Fail-Safe Splash Dismiss: Guarantees splash never freezes user even on slow network -->
+  <script>
+    setTimeout(function() {
+      var s = document.getElementById('splashScreen');
+      if (s && s.style.display !== 'none') {
+        s.style.transition = 'opacity 0.4s ease';
+        s.style.opacity = '0';
+        s.style.pointerEvents = 'none';
+        setTimeout(function() { s.style.display = 'none'; }, 400);
+      }
+    }, 5800);
+  </script>
+
+  <!-- ================= 2. MAIN APP SHELL ================= -->
+  <div id="appShell" class="min-h-screen flex flex-col justify-between">
+    
+    <!-- Top Sticky Header -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
+      
+      <!-- Topmost Row: Live Location & Quick Actions -->
+      <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between border-b border-slate-100 text-xs">
+        
+        <!-- Live Location Pin & Landmark Dropdown -->
+        <button onclick="openLocationModal()" class="flex items-center gap-1.5 text-slate-700 hover:text-slate-900 transition min-w-0">
+          <span class="text-orange-600 font-bold text-sm">📍</span>
+          <span class="font-bold truncate max-w-[170px] sm:max-w-xs" id="currentLocationText">Bus Stand Circle, Kodad</span>
+          <span class="text-[10px] text-slate-400">▼</span>
+          <span id="headerGpsBadge" class="hidden text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md shrink-0">GPS Locked</span>
+        </button>
+
+        <!-- Right Quick Links: Founder Helpline & Account -->
+        <div class="flex items-center gap-2.5">
+          <!-- Live Active Order Shortcut Pill (Shows if order active) -->
+          <button id="trackActiveOrderBtn" onclick="openTrackingModal()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black px-2.5 py-1 rounded-xl shadow-xs flex items-center gap-1 transition animate-pulse">
+            <span>🛵</span>
+            <span>Live Order</span>
+          </button>
+
+          <!-- 24/7 Helpline Link -->
+          <a href="tel:9640103505" title="Call Kodad Helpline" class="hidden sm:flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-orange-600 transition">
+            <span>📞</span>
+            <span>Helpline: 9640103505</span>
+          </a>
+
+          <!-- Profile / Login Avatar Pill -->
+          <button id="userProfileBtn" onclick="openProfileDrawer()" class="w-8 h-8 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-600 font-black text-xs flex items-center justify-center transition shadow-xs">
+            <span id="userInitialText">?</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Main Navigation & Search Row -->
+      <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+        
+        <!-- Brand Logo: Eat.in -->
+        <a href="index.html" class="flex items-center gap-2 shrink-0">
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#FF5A36] to-[#FF8C42] text-white flex items-center justify-center text-lg shadow-md shadow-orange-500/20">
+            🍽️
+          </div>
+          <div>
+            <div class="flex items-baseline leading-none">
+              <span class="text-2xl font-black tracking-tight text-slate-900">Eat</span>
+              <span class="text-2xl font-black text-[#FF5A36]">.in</span>
+            </div>
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block -mt-0.5">Kodad ⚡</span>
+          </div>
+        </a>
+
+        <!-- Desktop & Tablet Search Bar with Voice Search (Requirement 1) -->
+        <div class="hidden sm:flex flex-1 max-w-xl mx-2">
+          <div class="relative w-full">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            <input 
+              id="mainSearchInput"
+              type="text" 
+              placeholder="Search restaurants, dhabas, dishes, bakery, meat, medicine..." 
+              oninput="handleSearch(this.value)"
+              class="w-full bg-slate-100/90 text-slate-900 text-xs pl-9 pr-14 py-2.5 rounded-2xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-orange-500/30 border border-slate-200 transition font-semibold placeholder:text-slate-400 shadow-inner"
+            >
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <button id="clearSearchBtn" onclick="clearSearchInput()" class="hidden text-slate-400 hover:text-slate-600 text-xs px-1 font-bold">✕</button>
+              <button id="voiceSearchBtn" onclick="startVoiceSearch()" title="Voice Search (Speak now)" class="w-7 h-7 rounded-xl text-slate-500 hover:text-orange-600 hover:bg-orange-50 flex items-center justify-center transition text-sm">
+                🎙️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Cart Button -->
+        <div class="flex items-center gap-2">
+          <button onclick="toggleCartDrawer()" class="relative bg-[#FF5A36] hover:bg-[#E84A27] text-white px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-2 shadow-md shadow-orange-500/20 transition active:scale-95">
+            <span>🛒</span>
+            <span id="cartCountBadge" class="hidden bg-white text-[#FF5A36] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            <span id="cartTotalHeader">₹0</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Mobile Search Bar with Voice Search Button (Requirement 1) -->
+      <div class="px-4 pb-2.5 sm:hidden">
+        <div class="relative w-full">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+          <input 
+            id="mobileSearchInput"
+            type="text" 
+            placeholder="Search restaurants, dhabas, dishes, meat, bakery..." 
+            oninput="handleSearch(this.value)"
+            class="w-full bg-slate-100/90 text-slate-900 text-xs pl-8 pr-12 py-2.5 rounded-2xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-orange-500/30 border border-slate-200 transition font-semibold placeholder:text-slate-400 shadow-inner"
+          >
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <button id="mobileVoiceBtn" onclick="startVoiceSearch()" title="Voice Search" class="w-7 h-7 rounded-xl text-slate-500 hover:text-orange-600 flex items-center justify-center transition text-sm">
+              🎙️
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- ================= 3. FOOD ITEMS SLIDESHOW (Left-to-Right & Right-to-Left Marquee) (Requirement 1) ================= -->
+    <section class="max-w-7xl mx-auto px-4 pt-3 pb-1 overflow-hidden">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">✨</span>
+          <h3 class="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-wider">Top Cravings in Kodad</h3>
+        </div>
+        <span class="text-[10px] text-slate-400 font-semibold">Slide left ⇄ right</span>
+      </div>
+
+      <!-- Marquee Track 1: Sliding Left -->
+      <div class="overflow-hidden py-1">
+        <div id="foodShowcaseTrack1" class="marquee-track-left gap-3">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- Marquee Track 2: Sliding Right -->
+      <div class="overflow-hidden py-1">
+        <div id="foodShowcaseTrack2" class="marquee-track-right gap-3">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 4. RESTAURANT ADVERTISEMENTS & OFFERS SLIDESHOW (Requirement 5) ================= -->
+    <section class="max-w-7xl mx-auto px-4 pt-2 pb-2">
+      <div class="relative overflow-hidden rounded-3xl shadow-md border border-slate-200/80">
+        <!-- Carousel Slider Track -->
+        <div id="carouselTrack" class="flex transition-transform duration-500 ease-out">
+          <!-- Injected via JS -->
+        </div>
+
+        <!-- Controls -->
+        <button onclick="prevCarouselSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white font-bold flex items-center justify-center backdrop-blur-xs transition z-20">❮</button>
+        <button onclick="nextCarouselSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white font-bold flex items-center justify-center backdrop-blur-xs transition z-20">❯</button>
+      </div>
+
+      <!-- Indicator Dots -->
+      <div id="carouselDots" class="flex items-center justify-center gap-1.5 mt-2">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <!-- ================= 5. CLEAN VEG / NON-VEG SWITCH (Requirement 5: Replaces all cluttered filter pills) ================= -->
+    <section class="max-w-7xl mx-auto px-4 py-2 sticky top-[102px] sm:top-[68px] z-30 bg-[#F8F9FA]/95 backdrop-blur-md">
+      <div class="flex items-center justify-between gap-3">
+        
+        <!-- 3-Way Segmented Switch: All / Pure Veg / Non-Veg -->
+        <div class="flex items-center p-1 bg-white rounded-2xl border border-slate-200/90 shadow-xs text-xs font-black">
+          <button onclick="setVegFilter('all')" id="filterAllBtn" class="px-3.5 py-1.5 rounded-xl transition bg-slate-900 text-white shadow-xs">
+            All
+          </button>
+          <button onclick="setVegFilter('veg')" id="filterVegBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition text-slate-600 hover:text-emerald-700">
+            <span class="w-3 h-3 rounded-xs border border-emerald-600 flex items-center justify-center p-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            </span>
+            <span>Pure Veg</span>
+          </button>
+          <button onclick="setVegFilter('nonveg')" id="filterNonVegBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition text-slate-600 hover:text-rose-700">
+            <span class="w-3 h-3 rounded-xs border border-rose-600 flex items-center justify-center p-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+            </span>
+            <span>Non-Veg</span>
+          </button>
+        </div>
+
+        <!-- Sort Control -->
+        <div class="relative shrink-0">
+          <select onchange="handleSortChange(this.value)" id="sortSelect" class="bg-white border border-slate-200 rounded-2xl px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs focus:outline-none focus:border-orange-500 cursor-pointer pr-7">
+            <option value="relevance">⚡ Sort</option>
+            <option value="rating">⭐ Top Rated</option>
+            <option value="deliveryTime">⏱️ Fastest</option>
+            <option value="priceAsc">💰 Price: Low</option>
+            <option value="priceDesc">💎 Price: High</option>
+          </select>
+          <span class="absolute right-2 top-2 pointer-events-none text-[10px] text-slate-400">▼</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= 6. CATEGORIES SELECTOR (Requirement 2: Restaurants, Dhabas, Tiffins, Chicken, Meat, Bakery, Fruits, Medicine) ================= -->
+    <section id="categoriesSection" class="max-w-7xl mx-auto px-4 py-2.5">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+          <span>🗂️</span>
+          <span>Explore by Category</span>
+        </h3>
+        <span class="text-[11px] text-slate-500">Tap to browse stores</span>
+      </div>
+
+      <!-- Categories Horizontal Scroll Track -->
+      <div id="categoryContainer" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1">
+        <!-- Populated via JS -->
+      </div>
+    </section>
+
+    <!-- ================= 7. FREQUENTLY ORDERED IN KODAD (Requirement 6) ================= -->
+    <section class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between mb-2.5">
+        <div>
+          <h3 class="font-black text-base text-slate-900 flex items-center gap-1.5">
+            <span>🔥</span>
+            <span>Frequently Ordered in Kodad</span>
+          </h3>
+          <p class="text-xs text-slate-500">Top customer favorites prepared hot & fresh</p>
+        </div>
+      </div>
+
+      <div id="frequentlyOrderedGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <!-- Populated via JS -->
+      </div>
+    </section>
+
+    <!-- ================= 8. KODAD PARTNER STORES & HUBS (Requirement 2: Open/Close Timings, Active/Inactive Status, Distance) ================= -->
+    <section class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 id="storesSectionHeading" class="font-black text-base text-slate-900 flex items-center gap-1.5">
+            <span>🏪</span>
+            <span>Kodad Partner Stores & Hubs</span>
+          </h3>
+          <p class="text-xs text-slate-500">Restaurants, Highway Dhabas, Tiffin Centres, Bakeries & Pharmacies</p>
+        </div>
+        <button id="clearStoreFilterBtn" onclick="clearSelectedStore()" class="hidden text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-xl border border-orange-200">
+          ✕ Show All Stores
+        </button>
+      </div>
+
+      <!-- Stores Grid -->
+      <div id="restaurantsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Populated via JS -->
+      </div>
+    </section>
+
+    <!-- ================= 9. ALL DISHES & SPECIALTIES CATALOG ================= -->
+    <section class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="dishesHeading" class="font-black text-base text-slate-900 flex items-center gap-2">
+          <span>🍽️</span>
+          <span>Dishes & Items Menu</span>
+        </h3>
+      </div>
+
+      <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+  </div> <!-- End Main App Shell -->
+
+  <!-- ================= 10. FLOATING MINI CART BAR (Appears when items added) ================= -->
+  <div id="mobileBottomCartBar" class="hidden fixed bottom-16 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 z-40 bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700 animate-in fade-in slide-in-from-bottom-4">
+    <div class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-sm">🛒</span>
+      <div>
+        <p class="font-black text-xs"><span id="miniCartCount">0</span> Items in Cart</p>
+        <p class="text-[11px] text-slate-300">Total: <b id="miniCartTotal" class="text-amber-300 font-black">₹0</b> (Flat ₹30 delivery)</p>
+      </div>
+    </div>
+    <button onclick="toggleCartDrawer()" class="bg-[#FF5A36] hover:bg-[#E84A27] text-white font-black text-xs px-4 py-2 rounded-xl shadow-md transition flex items-center gap-1 active:scale-95">
+      <span>View Cart</span>
+      <span>➔</span>
+    </button>
+  </div>
+
+  <!-- ================= ZOMATO-STYLE LIVE FLOATING ORDER DOCK (Proactive Status Island) ================= -->
+  <div id="liveOrderFloatingDock" class="hidden fixed bottom-16 inset-x-3 sm:inset-x-auto sm:right-4 z-40 max-w-sm bg-slate-950 text-white p-3.5 rounded-3xl shadow-2xl border border-orange-500/40 backdrop-blur-md animate-in slide-in-from-bottom-4 transition">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 overflow-hidden">
+        <div class="w-10 h-10 rounded-2xl bg-orange-600 text-white flex items-center justify-center text-lg font-black shrink-0 relative">
+          <span id="dockStatusIcon">👨‍🍳</span>
+          <span class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-950 animate-ping"></span>
+          <span class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-950"></span>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-black uppercase tracking-wider text-orange-400" id="dockRestName">Restaurant</span>
+            <span class="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono font-bold" id="dockOrderId">#KD-0000</span>
+          </div>
+          <h5 class="text-xs font-black text-slate-100 truncate" id="dockStatusTitle">Food is being prepared...</h5>
+        </div>
+      </div>
+      <button onclick="openTrackingModal()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-3 py-2 rounded-xl shrink-0 shadow-md flex items-center gap-1 transition">
+        <span>Track</span>
+        <span>➔</span>
+      </button>
+    </div>
+    <!-- Mini Progress Bar -->
+    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
+      <div id="dockProgressBar" class="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full transition-all duration-700" style="width: 25%;"></div>
+    </div>
+  </div>
+
+  <!-- ================= 1-TAP PWA INSTALL BANNER (Direct Download & Install) ================= -->
+  <div id="pwaInstallBanner" class="hidden fixed top-3 inset-x-3 sm:inset-x-auto sm:right-3 z-[60] max-w-sm bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 text-white p-3.5 rounded-2xl shadow-2xl border border-orange-500/50 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4">
+    <div class="flex items-center gap-2.5">
+      <div class="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">🛵</div>
+      <div>
+        <h5 class="text-xs font-black tracking-tight text-white flex items-center gap-1">
+          <span>Install Eat.in App</span>
+          <span class="bg-emerald-500/20 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded font-bold">1-Tap</span>
+        </h5>
+        <p class="text-[10px] text-slate-300">Fast ordering directly from home screen</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="pwaInstallBtn" onclick="triggerPwaInstall()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-3 py-1.5 rounded-xl shadow-md transition">Install</button>
+      <button onclick="dismissPwaBanner()" class="text-slate-400 hover:text-white text-xs p-1">✕</button>
+    </div>
+  </div>
+
+  <!-- ================= PROACTIVE FLOATING ALERT TOAST (Zomato-Style Top Alert) ================= -->
+  <div id="proactiveAlertToast" class="hidden fixed top-4 inset-x-4 sm:inset-x-auto sm:right-4 z-[70] max-w-sm bg-slate-950/95 text-white p-3.5 rounded-2xl shadow-2xl border border-emerald-500/60 backdrop-blur-md flex items-center gap-3 transition-all duration-300">
+    <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0" id="toastIcon">🔔</div>
+    <div class="flex-1 truncate">
+      <h6 class="text-xs font-black text-white" id="toastTitle">Order Update</h6>
+      <p class="text-[11px] text-slate-300 truncate" id="toastMessage">Your order status changed.</p>
+    </div>
+    <button onclick="this.parentElement.classList.add('hidden')" class="text-slate-400 hover:text-white text-xs p-1">✕</button>
+  </div>
+
+  <!-- ================= 11. STICKY BOTTOM APP NAVIGATION BAR (Requirement 6) ================= -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-1.5 px-4 shadow-lg select-none">
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center">
+      
+      <!-- Home -->
+      <button onclick="navSwitchTab('home')" id="navBtnHome" class="flex flex-col items-center justify-center py-1 text-orange-600 transition">
+        <span class="text-lg">🏠</span>
+        <span class="text-[10px] font-black tracking-tight">Home</span>
+      </button>
+
+      <!-- Categories -->
+      <button onclick="navSwitchTab('categories')" id="navBtnCategories" class="flex flex-col items-center justify-center py-1 text-slate-500 hover:text-orange-600 transition">
+        <span class="text-lg">🗂️</span>
+        <span class="text-[10px] font-bold tracking-tight">Categories</span>
+      </button>
+
+      <!-- My Orders -->
+      <button onclick="navSwitchTab('orders')" id="navBtnOrders" class="flex flex-col items-center justify-center py-1 text-slate-500 hover:text-orange-600 transition relative">
+        <span class="text-lg">🛵</span>
+        <span class="text-[10px] font-bold tracking-tight">My Orders</span>
+        <span id="navOrdersBadge" class="hidden absolute top-0.5 right-6 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      </button>
+
+      <!-- Profile -->
+      <button onclick="navSwitchTab('profile')" id="navBtnProfile" class="flex flex-col items-center justify-center py-1 text-slate-500 hover:text-orange-600 transition">
+        <span class="text-lg">👤</span>
+        <span class="text-[10px] font-bold tracking-tight">Profile</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ================= 12. CART DRAWER & DEDICATED PAYMENT SCREEN (Requirement 8) ================= -->
+  <div id="cartDrawer" class="hidden fixed inset-0 z-50 overflow-hidden">
+    <div onclick="toggleCartDrawer()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"></div>
+
+    <div class="absolute inset-y-0 right-0 max-w-full flex pl-6">
+      <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        
+        <!-- Cart Header -->
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+          <div class="flex items-center gap-2.5">
+            <button id="cartStepBackBtn" onclick="backToCartItemsStep()" class="hidden w-7 h-7 rounded-xl bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold text-slate-700 text-xs mr-1 transition">❮</button>
+            <span class="text-2xl">🛒</span>
+            <div>
+              <h3 id="cartHeaderTitle" class="font-extrabold text-base text-slate-900">Your Eat.in Order</h3>
+              <p class="text-xs text-slate-500" id="cartStoreTitle">Select dishes to order</p>
+            </div>
+          </div>
+          <button onclick="toggleCartDrawer()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold text-slate-600 transition">✕</button>
+        </div>
+
+        <!-- ================= CART STEP 1: ITEMS & ADDRESS REVIEW ================= -->
+        <div id="cartStep1" class="flex-1 overflow-y-auto p-4 space-y-4">
+          
+          <!-- Items List in Cart -->
+          <div id="cartItemsList" class="space-y-3">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Add-ons Suggestions ("Customers Also Added") -->
+          <div class="bg-orange-50/60 border border-orange-200/80 rounded-2xl p-3 space-y-2">
+            <span class="text-[11px] font-black uppercase tracking-wide text-orange-900 block">
+              🍽️ Customers Also Added
+            </span>
+            <div id="cartAddOnsList" class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Discount Coupon Application -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-black uppercase tracking-wide text-slate-700">🏷️ Apply Milestone Coupon</span>
+              <span id="couponNotice" class="text-[10px] text-emerald-700 font-bold hidden">Coupon Applied!</span>
+            </div>
+            <div class="flex gap-2">
+              <input id="couponCodeInput" type="text" placeholder="e.g. EATIN50 or EATIN100" class="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold uppercase focus:outline-none focus:border-orange-500">
+              <button onclick="applyCouponCode()" class="bg-orange-600 hover:bg-orange-700 text-white font-black text-xs px-4 py-2 rounded-xl transition shadow-xs">
+                Apply
+              </button>
+            </div>
+            <div id="quickCouponPills" class="flex gap-1.5 overflow-x-auto no-scrollbar text-[10px] font-bold">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+          <!-- Customer Delivery Address in Kodad -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+            <h4 class="font-black text-xs uppercase tracking-wide text-slate-800 flex items-center justify-between">
+              <span>📍 Delivery Address in Kodad</span>
+              <button type="button" onclick="openEditProfileModal()" class="text-orange-600 font-bold text-[10px] underline">Edit</button>
+            </h4>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Customer Name:</label>
+              <input id="custNameInput" type="text" value="Customer" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-orange-500">
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Phone Number (Rider Calls):</label>
+              <input id="custPhoneInput" type="tel" value="9848123456" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-orange-500">
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">House / Door No & Street:</label>
+              <input id="custAddressInput" type="text" value="Main Road, Kodad" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-orange-500">
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Kodad Landmark:</label>
+              <select id="custLandmarkSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-orange-500">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <!-- Live GPS House Pin Locator -->
+            <div class="pt-1">
+              <button type="button" onclick="captureCustomerLiveGPS(false)" id="gpsCaptureBtn" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-extrabold text-xs py-2 px-3 rounded-xl shadow-xs flex items-center justify-center gap-2 transition">
+                <span>📍</span>
+                <span id="gpsCaptureBtnText">Use My Exact Live House GPS</span>
+              </button>
+              <div id="gpsStatusCard" class="hidden mt-2 p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-[11px] text-emerald-900 font-bold flex items-center justify-between">
+                <span id="gpsCoordsDisplay">📍 Live Home GPS: Locked</span>
+                <button type="button" onclick="clearLiveGPS()" class="text-xs text-red-600 font-black px-1">✕ Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bill Summary (Delivery Fee ₹30, Packing Charges Removed) -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 text-xs font-semibold">
+            <div class="flex justify-between text-slate-600">
+              <span>Item Subtotal</span>
+              <span id="billSubtotal">₹0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Delivery Charges</span>
+              <span id="billDelivery" class="font-bold text-slate-800">₹30</span>
+            </div>
+            <div id="discountRow" class="hidden flex justify-between text-emerald-600 font-bold">
+              <span>Applied Discount (<span id="discountCodeText">PROMO</span>)</span>
+              <span id="billDiscount">-₹0</span>
+            </div>
+            <hr class="border-slate-200 my-1">
+            <div class="flex justify-between text-base font-black text-slate-900">
+              <span>Total Bill</span>
+              <span id="billGrandTotal" class="text-orange-600">₹0</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sticky Bottom Proceed Bar for Step 1 -->
+        <div id="cartStep1Footer" class="p-4 bg-slate-50 border-t border-slate-200">
+          <button 
+            id="proceedToPaymentBtn"
+            onclick="openPaymentMethodStep()" 
+            class="w-full bg-[#FF5A36] hover:bg-[#E84A27] text-white font-black py-3.5 px-4 rounded-xl shadow-lg shadow-orange-500/25 flex items-center justify-between transition disabled:opacity-50 text-sm active:scale-95"
+          >
+            <span class="flex items-center gap-2">
+              <span>Proceed to Payment</span>
+              <span>➔</span>
+            </span>
+            <span id="proceedBtnAmount">₹0</span>
+          </button>
+        </div>
+
+        <!-- ================= CART STEP 2: SELECT PAYMENT METHOD (Requirement 8) ================= -->
+        <div id="cartStep2" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
+          
+          <!-- Delivery Address Summary -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex items-start gap-3">
+            <span class="text-2xl shrink-0">📍</span>
+            <div class="min-w-0">
+              <h5 class="font-black text-xs text-slate-900" id="step2CustomerName">Customer</h5>
+              <p class="text-[11px] text-slate-500 truncate" id="step2CustomerAddress">Address in Kodad</p>
+              <p class="text-[10px] text-orange-600 font-bold mt-0.5" id="step2CustomerLandmark">Bus Stand Circle</p>
+            </div>
+          </div>
+
+          <!-- Total Bill Badge -->
+          <div class="bg-orange-50 border border-orange-200 rounded-2xl p-3.5 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-black uppercase text-orange-700 block">Total Amount to Pay</span>
+              <span class="text-xs text-slate-600">Items + ₹30 Flat Delivery</span>
+            </div>
+            <span id="step2TotalDisplay" class="text-xl font-black text-orange-600">₹0</span>
+          </div>
+
+          <!-- Payment Options Heading -->
+          <div>
+            <h4 class="font-black text-xs uppercase tracking-wider text-slate-700 mb-2.5">
+              Select Payment Method
+            </h4>
+
+            <!-- Option 1: Cash on Delivery (COD) -->
+            <div class="space-y-3">
+              <div onclick="selectPaymentMethodOption('COD')" id="paymentOptionCardCOD" class="p-4 rounded-2xl border-2 border-orange-500 bg-orange-50/40 cursor-pointer transition shadow-xs flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
+                    💵
+                  </div>
+                  <div>
+                    <h5 class="font-black text-xs text-slate-900">Cash on Delivery (COD)</h5>
+                    <p class="text-[11px] text-slate-500">Pay cash or UPI to rider when food arrives</p>
+                  </div>
+                </div>
+                <input type="radio" name="paymentOptionRadio" value="COD" checked class="accent-orange-600 w-4 h-4">
+              </div>
+
+              <!-- Option 2: Online Payment via Razorpay -->
+              <div onclick="selectPaymentMethodOption('RAZORPAY')" id="paymentOptionCardRazorpay" class="p-4 rounded-2xl border border-slate-200 hover:border-orange-400 bg-white cursor-pointer transition shadow-xs flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0">
+                    💳
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <h5 class="font-black text-xs text-slate-900">Online Payment (Razorpay)</h5>
+                      <span class="bg-blue-100 text-blue-800 text-[9px] font-black px-1.5 py-0.2 rounded">Instant</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-0.5">UPI (GPay, PhonePe, Paytm), Cards, NetBanking</p>
+                  </div>
+                </div>
+                <input type="radio" name="paymentOptionRadio" value="RAZORPAY" class="accent-orange-600 w-4 h-4">
+              </div>
+            </div>
+
+            <!-- Razorpay Payment Methods Logos -->
+            <div class="mt-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-center space-y-1.5">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Supported Online Payment Methods</span>
+              <div class="flex items-center justify-center gap-2 text-xs font-black text-slate-700 flex-wrap">
+                <span class="px-2 py-1 bg-white rounded-lg border border-slate-200 shadow-xs">🟣 PhonePe</span>
+                <span class="px-2 py-1 bg-white rounded-lg border border-slate-200 shadow-xs">🔵 GPay</span>
+                <span class="px-2 py-1 bg-white rounded-lg border border-slate-200 shadow-xs">🟦 Paytm</span>
+                <span class="px-2 py-1 bg-white rounded-lg border border-slate-200 shadow-xs">💳 Cards / NetBanking</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sticky Bottom Confirmation Button for Step 2 -->
+        <div id="cartStep2Footer" class="hidden p-4 bg-slate-50 border-t border-slate-200 space-y-2">
+          <button 
+            id="confirmOrderFinalBtn"
+            onclick="executeSelectedPaymentOrder()" 
+            class="w-full bg-[#FF5A36] hover:bg-[#E84A27] text-white font-black py-3.5 px-4 rounded-xl shadow-lg shadow-orange-500/25 flex items-center justify-between transition text-sm active:scale-95"
+          >
+            <span id="finalConfirmBtnText" class="flex items-center gap-2">
+              <span>Place Order with Cash on Delivery</span>
+              <span>➔</span>
+            </span>
+            <span id="finalConfirmBtnAmount">₹0</span>
+          </button>
+          <p class="text-[10px] text-center text-slate-400">
+            🔒 Safe & Secure local delivery within 15-20 mins
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 13. LIVE ORDER TRACKING MODAL (Silent 5-Min Cancel Rule) (Requirement 8) ================= -->
+  <div id="trackingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🛵</span>
+          <div>
+            <h4 class="font-black text-sm text-slate-900">Live Order Tracker</h4>
+            <p class="text-[10px] text-slate-500">Order #<span id="trackOrderIdDisplay">--</span></p>
+          </div>
+        </div>
+        <button onclick="closeTrackingModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+      </div>
+
+      <!-- Live Interactive Leaflet GPS Map -->
+      <div class="relative">
+        <div id="trackingMap" class="shadow-inner border border-slate-200"></div>
+        <div class="absolute bottom-2 left-2 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-black text-slate-800 shadow flex items-center gap-1 z-20">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="trackMapEtaBadge">Estimated: 15-20 Mins</span>
+        </div>
+      </div>
+
+      <!-- Live Order Status Progression -->
+      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-black uppercase text-slate-700 tracking-wider">Status: <b id="trackStatusBadge" class="text-orange-600">PLACED</b></span>
+          <span id="trackTimeBadge" class="text-[10px] text-slate-400">Just now</span>
+        </div>
+        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+          <div id="trackProgressBar" class="h-full bg-orange-500 rounded-full transition-all duration-500" style="width: 25%;"></div>
+        </div>
+      </div>
+
+      <!-- Doorstep Delivery Confirmation OTP Card (The Zomato Way) -->
+      <div id="trackDeliveryOtpContainer" class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-dashed border-amber-400 rounded-2xl p-3 text-center shadow-xs">
+        <div class="flex items-center justify-center gap-1.5 text-amber-900 text-[11px] font-black uppercase tracking-wider">
+          <span>🔑</span>
+          <span>Doorstep Delivery Confirmation OTP</span>
+        </div>
+        <div id="trackDeliveryOtpDisplay" class="text-3xl font-black text-slate-900 tracking-widest my-1 font-mono">
+          ----
+        </div>
+        <p class="text-[10px] text-slate-600 font-medium">
+          Share this 4-digit code with your Eat.in Captain when they arrive with your food.
+        </p>
+      </div>
+
+      <!-- Assigned Captain Card -->
+      <div id="trackCaptainCard" class="p-3 bg-white rounded-2xl border border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0">
+            🛵
+          </div>
+          <div>
+            <h5 id="trackCaptainName" class="font-black text-xs text-slate-900">Assigning Rider...</h5>
+            <p id="trackCaptainVehicle" class="text-[10px] text-slate-500">Eat.in Delivery Fleet</p>
+          </div>
+        </div>
+        <a id="trackCaptainCallBtn" href="tel:9640103505" class="bg-orange-50 hover:bg-orange-100 text-orange-600 font-black text-xs px-3 py-1.5 rounded-xl border border-orange-200 transition flex items-center gap-1">
+          <span>📞</span>
+          <span>Call Rider</span>
+        </a>
+      </div>
+
+      <!-- Order Items Summary -->
+      <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5">
+        <span class="text-[10px] font-black uppercase text-slate-500">Order Items:</span>
+        <div id="trackOrderItemsList" class="text-xs font-semibold text-slate-800 space-y-1"></div>
+        <div class="pt-1 border-t border-slate-200 flex justify-between text-xs font-black text-slate-900">
+          <span>Total Paid/COD:</span>
+          <span id="trackOrderTotal" class="text-orange-600">₹0</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons: WhatsApp Support + Cancel Order (Silent 5-Min Rule) -->
+      <div class="space-y-2 pt-1">
+        <a id="trackWhatsAppSupportBtn" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2.5 rounded-xl transition shadow-xs flex items-center justify-center gap-1.5">
+          <span>💬</span>
+          <span>WhatsApp Live Delivery Support</span>
+        </a>
+
+        <!-- Cancel Order Button (Requirement 8: 5-minute rule, timing NOT shown to customer) -->
+        <button id="trackCancelOrderBtn" onclick="attemptCustomerCancelOrder()" class="w-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 font-bold text-xs py-2 rounded-xl border border-slate-200 hover:border-rose-300 transition">
+          ✕ Cancel Order
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= 14. PROFILE & ORDER HISTORY DRAWER ================= -->
+  <div id="profileDrawer" class="hidden fixed inset-0 z-50 overflow-hidden">
+    <div onclick="closeProfileDrawer()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"></div>
+    <div class="absolute inset-y-0 right-0 max-w-full flex pl-6">
+      <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <h3 class="font-black text-base text-slate-900">My Account</h3>
+          <button onclick="closeProfileDrawer()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold text-slate-600">✕</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <!-- Profile Card -->
+          <div class="p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-orange-200 flex items-center gap-3">
+            <div id="drawerUserInitial" class="w-12 h-12 rounded-2xl bg-orange-600 text-white font-black text-lg flex items-center justify-center shadow-md">
+              ?
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 id="drawerUserName" class="font-black text-sm text-slate-900 truncate">Customer</h4>
+              <p id="drawerUserPhone" class="text-xs text-slate-500 font-semibold">+91 --</p>
+              <p id="drawerUserAddress" class="text-[10px] text-slate-400 truncate">Kodad Town</p>
+            </div>
+            <button onclick="openEditProfileModal()" class="text-xs font-bold text-orange-600 bg-white px-2.5 py-1 rounded-xl border border-orange-200 shadow-xs">
+              Edit
+            </button>
+          </div>
+
+          <!-- Orders History -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="font-black text-xs uppercase tracking-wider text-slate-700">Order History</h4>
+              <span id="drawerDeliveredCount" class="text-[10px] text-slate-500 font-bold">0 Orders</span>
+            </div>
+            <div id="drawerOrdersList" class="space-y-2.5">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Helpline & WhatsApp Links -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <span class="text-xs font-black text-slate-800 block">Need Help or Delivery Support?</span>
+            <div class="flex gap-2">
+              <a href="tel:9640103505" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs py-2 rounded-xl text-center shadow-xs">
+                📞 Call 9640103505
+              </a>
+              <a href="https://wa.me/919640103505?text=Hi%20Eat.in,%20I%20need%20help%20with%20my%20order" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 rounded-xl text-center shadow-xs">
+                💬 WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-2">
+          <button onclick="closeProfileDrawer(); openAuthGateModal('selector');" class="w-full bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs">
+            <span>🔄</span> Switch Portal (Customer / Captain / Kitchen)
+          </button>
+          <button onclick="logoutCurrentUser()" class="w-full bg-slate-200 hover:bg-rose-100 hover:text-rose-700 text-slate-700 font-bold text-xs py-2 rounded-xl transition">
+            Log Out
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 15. AUTH GATE MODAL: 3-BOX ROLE SELECTOR (Customer, Captain, Kitchen) ================= -->
+  <div id="authGateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#FF5A36] to-[#FF8C42] text-white flex items-center justify-center text-lg shadow-sm">
+            🍽️
+          </div>
+          <div>
+            <h4 class="font-black text-base text-slate-900">Welcome to Eat.in</h4>
+            <p class="text-[10px] text-slate-500 font-semibold">Instant Delivery across Kodad</p>
+          </div>
+        </div>
+        <button onclick="closeAuthGateModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition">✕</button>
+      </div>
+
+      <!-- VIEW 1: THE 3 PROMINENT BOXES (Role Selector) -->
+      <div id="authRoleSelectorView" class="space-y-3">
+        <div class="text-center px-1">
+          <h5 class="text-xs font-black uppercase tracking-wider text-slate-700">Choose Your Portal to Login</h5>
+          <p class="text-[11px] text-slate-500 mt-0.5">Select a role to verify with real mobile SMS OTP:</p>
+        </div>
+
+        <!-- Box 1: Customer -->
+        <button onclick="switchAuthView('customer')" class="w-full text-left p-3.5 rounded-2xl border-2 border-orange-200 hover:border-orange-500 bg-gradient-to-r from-orange-50/80 to-amber-50/50 hover:from-orange-100/70 hover:to-amber-100/50 transition group flex items-center justify-between gap-3 shadow-xs">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-[#FF5A36] text-white flex items-center justify-center text-2xl shadow-md shadow-orange-500/30 group-hover:scale-105 transition shrink-0">
+              🛍️
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-black text-sm text-slate-900 group-hover:text-orange-600 transition">Customer Login</span>
+                <span class="bg-orange-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Order Food</span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">Order food, tiffins, dhabas, meat & groceries</p>
+            </div>
+          </div>
+          <span class="text-orange-600 font-black text-base group-hover:translate-x-1 transition shrink-0">➔</span>
+        </button>
+
+        <!-- Box 2: Captain (Delivery Partner) -->
+        <button onclick="switchAuthView('captain')" class="w-full text-left p-3.5 rounded-2xl border-2 border-blue-200 hover:border-blue-500 bg-gradient-to-r from-blue-50/80 to-indigo-50/50 hover:from-blue-100/70 hover:to-indigo-100/50 transition group flex items-center justify-between gap-3 shadow-xs">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-600/30 group-hover:scale-105 transition shrink-0">
+              🛵
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-black text-sm text-slate-900 group-hover:text-blue-600 transition">Captain Rider Login</span>
+                <span class="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">₹30 / Order</span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">Earn ₹30 commission per delivery in Kodad</p>
+            </div>
+          </div>
+          <span class="text-blue-600 font-black text-base group-hover:translate-x-1 transition shrink-0">➔</span>
+        </button>
+
+        <!-- Box 3: Restaurant / Dhaba Kitchen -->
+        <button onclick="switchAuthView('restaurant')" class="w-full text-left p-3.5 rounded-2xl border-2 border-amber-200 hover:border-amber-500 bg-gradient-to-r from-amber-50/80 to-yellow-50/50 hover:from-amber-100/70 hover:to-yellow-100/50 transition group flex items-center justify-between gap-3 shadow-xs">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-600/30 group-hover:scale-105 transition shrink-0">
+              🍳
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-black text-sm text-slate-900 group-hover:text-amber-600 transition">Kitchen Partner Login</span>
+                <span class="bg-amber-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Live Orders</span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">Receive orders with sound alarm & toggle menu status</p>
+            </div>
+          </div>
+          <span class="text-amber-600 font-black text-base group-hover:translate-x-1 transition shrink-0">➔</span>
+        </button>
+
+        <div class="pt-2 text-center border-t border-slate-100">
+          <button onclick="closeAuthGateModal()" class="text-xs font-bold text-slate-500 hover:text-orange-600 transition">
+            Explore Eat.in Stores as Guest ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW 2: CUSTOMER AUTH FLOW -->
+      <div id="authCustomerView" class="hidden space-y-4">
+        <!-- Top Switcher Row -->
+        <div class="flex items-center justify-between">
+          <button onclick="switchAuthView('selector')" class="text-xs text-slate-500 hover:text-slate-800 font-bold flex items-center gap-1">
+            <span>←</span> Back to Portals
+          </button>
+          <div class="flex gap-1">
+            <button class="bg-orange-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg">🛍️ Customer</button>
+            <button onclick="switchAuthView('captain')" class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-200">🛵 Captain</button>
+            <button onclick="switchAuthView('restaurant')" class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-200">🍳 Kitchen</button>
+          </div>
+        </div>
+
+        <!-- Customer Step 1: Mobile -->
+        <div id="customerPhoneStep" class="space-y-3">
+          <div class="p-3 bg-orange-50 rounded-2xl border border-orange-100 flex items-center gap-2.5">
+            <span class="text-2xl">🛍️</span>
+            <div>
+              <h5 class="font-black text-xs text-slate-900">Customer OTP Login</h5>
+              <p class="text-[10px] text-slate-500">Order from Kodad restaurants, tiffins & dhabas</p>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Enter 10-Digit Mobile Number:</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">+91</span>
+              <input id="authPhoneInput" type="tel" maxlength="10" placeholder="9848012345" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-12 pr-3 py-2.5 text-xs font-bold focus:outline-none focus:border-orange-500">
+            </div>
+          </div>
+          <button onclick="handleSendCustomerOtp()" class="w-full bg-[#FF5A36] hover:bg-[#E84A27] text-white font-black text-xs py-3 rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>Send Real SMS OTP</span> ➔
+          </button>
+        </div>
+
+        <!-- Customer Step 2: OTP -->
+        <div id="customerOtpStep" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-slate-600">
+              Enter OTP sent to <b id="authOtpPhoneTarget" class="text-slate-900">+91 --</b>
+            </p>
+            <button onclick="backToCustomerPhone()" class="text-xs text-orange-600 font-bold underline">Edit Number</button>
+          </div>
+          <input id="authOtpInput" type="number" placeholder="Enter 6-digit OTP" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-center font-black tracking-widest text-base focus:outline-none focus:border-orange-500">
+          <button onclick="handleVerifyCustomerOtp()" class="w-full bg-[#FF5A36] hover:bg-[#E84A27] text-white font-black text-xs py-3 rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>Verify & Open Customer Portal</span> ➔
+          </button>
+          <p class="text-[10px] text-center text-slate-400">
+            📱 Auto-detecting SMS OTP via WebOTP API...
+          </p>
+        </div>
+
+        <!-- Customer Step 3: First-Time Profile Onboarding -->
+        <div id="customerProfileStep" class="hidden space-y-3">
+          <h5 class="font-black text-xs text-slate-900 uppercase">Complete Your Profile</h5>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600 block mb-1">Your Full Name:</label>
+            <input id="newCustName" type="text" placeholder="e.g. Ramesh" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-orange-500">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600 block mb-1">Kodad Landmark:</label>
+            <select id="newCustLandmark" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-orange-500">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <button onclick="handleSaveNewCustomerProfile()" class="w-full bg-[#FF5A36] hover:bg-[#E84A27] text-white font-black text-xs py-3 rounded-xl shadow-md transition active:scale-95">
+            Start Ordering in Kodad ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW 3: CAPTAIN RIDER AUTH FLOW -->
+      <div id="authCaptainView" class="hidden space-y-4">
+        <!-- Top Switcher Row -->
+        <div class="flex items-center justify-between">
+          <button onclick="switchAuthView('selector')" class="text-xs text-slate-500 hover:text-slate-800 font-bold flex items-center gap-1">
+            <span>←</span> Back to Portals
+          </button>
+          <div class="flex gap-1">
+            <button onclick="switchAuthView('customer')" class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-200">🛍️ Customer</button>
+            <button class="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg">🛵 Captain</button>
+            <button onclick="switchAuthView('restaurant')" class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-200">🍳 Kitchen</button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-2.5">
+          <span class="text-2xl">🛵</span>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h5 class="font-black text-xs text-slate-900">Captain Delivery Partner</h5>
+              <span class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">₹30 / Order</span>
+            </div>
+            <p class="text-[10px] text-slate-500">Earn ₹30 commission per delivered order in Kodad</p>
+          </div>
+        </div>
+
+        <!-- Captain Step 1: Mobile -->
+        <div id="captainPhoneStep" class="space-y-3">
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Enter 10-Digit Mobile Number:</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">+91</span>
+              <input id="authCaptainPhoneInput" type="tel" maxlength="10" placeholder="9848012345" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-12 pr-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+          </div>
+          <button onclick="handleSendCaptainOtp()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs py-3 rounded-xl shadow-md shadow-blue-500/20 transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>Send Real 6-Digit OTP</span> ➔
+          </button>
+        </div>
+
+        <!-- Captain Step 2: OTP & Profile -->
+        <div id="captainOtpStep" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-slate-600">
+              Enter OTP sent to <b id="authCaptainOtpPhoneTarget" class="text-slate-900">+91 --</b>
+            </p>
+            <button onclick="backToCaptainPhone()" class="text-xs text-blue-600 font-bold underline">Edit Number</button>
+          </div>
+          <input id="authCaptainOtpInput" type="number" placeholder="Enter 6-digit OTP" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-center font-black tracking-widest text-base focus:outline-none focus:border-blue-500 font-mono">
+
+          <div id="captainNewProfileFields" class="space-y-2 pt-1">
+            <div>
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Rider Full Name:</label>
+              <input id="newCaptainName" type="text" placeholder="e.g. Ramesh Kumar" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Bike / Vehicle Details:</label>
+              <input id="newCaptainVehicle" type="text" placeholder="e.g. Hero Splendor (TS-05-AB-1234)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+
+          <button onclick="handleVerifyCaptainOtp()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs py-3 rounded-xl shadow-md shadow-blue-500/20 transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>Verify OTP & Open Rider Portal</span> ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW 4: RESTAURANT / KITCHEN AUTH FLOW -->
+      <div id="authRestaurantView" class="hidden space-y-4">
+        <!-- Top Switcher Row -->
+        <div class="flex items-center justify-between">
+          <button onclick="switchAuthView('selector')" class="text-xs text-slate-500 hover:text-slate-800 font-bold flex items-center gap-1">
+            <span>←</span> Back to Portals
+          </button>
+          <div class="flex gap-1">
+            <button onclick="switchAuthView('customer')" class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-200">🛍️ Customer</button>
+            <button onclick="switchAuthView('captain')" class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-200">🛵 Captain</button>
+            <button class="bg-amber-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg">🍳 Kitchen</button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-100 flex items-center gap-2.5">
+          <span class="text-2xl">🍳</span>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h5 class="font-black text-xs text-slate-900">Restaurant & Dhaba Kitchen</h5>
+              <span class="bg-amber-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">Live Orders</span>
+            </div>
+            <p class="text-[10px] text-slate-500">Receive live orders with loud sound alert & manage menu</p>
+          </div>
+        </div>
+
+        <!-- Kitchen Step 1: Mobile -->
+        <div id="restaurantPhoneStep" class="space-y-3">
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Enter Registered Owner Mobile Number:</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">+91</span>
+              <input id="authRestPhoneInput" type="tel" maxlength="10" placeholder="9848011111" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-12 pr-3 py-2.5 text-xs font-bold focus:outline-none focus:border-amber-500 font-mono">
+            </div>
+          </div>
+          <button onclick="handleSendRestaurantOtp()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 text-white font-black text-xs py-3 rounded-xl shadow-md shadow-amber-500/20 transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>Send Real 6-Digit OTP</span> ➔
+          </button>
+        </div>
+
+        <!-- Kitchen Step 2: OTP -->
+        <div id="restaurantOtpStep" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-slate-600">
+              Enter OTP sent to <b id="authRestOtpPhoneTarget" class="text-slate-900">+91 --</b>
+            </p>
+            <button onclick="backToRestaurantPhone()" class="text-xs text-amber-600 font-bold underline">Edit Number</button>
+          </div>
+          <input id="authRestOtpInput" type="number" placeholder="Enter 6-digit OTP" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-center font-black tracking-widest text-base focus:outline-none focus:border-amber-500 font-mono">
+          <button onclick="handleVerifyRestaurantOtp()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 text-white font-black text-xs py-3 rounded-xl shadow-md shadow-amber-500/20 transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>Verify OTP & Open Kitchen Dashboard</span> ➔
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= 16. LOCATION SELECTOR MODAL ================= -->
+  <div id="locationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h4 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+          <span>📍</span>
+          <span>Select Delivery Location</span>
+        </h4>
+        <button onclick="closeLocationModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+      </div>
+
+      <button onclick="captureCustomerLiveGPS(false); closeLocationModal();" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+        <span>📍</span>
+        <span>Use My Live GPS (Automatic)</span>
+      </button>
+
+      <div class="space-y-1.5 max-h-60 overflow-y-auto" id="locationLandmarksList">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 17. EDIT PROFILE MODAL ================= -->
+  <div id="editProfileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h4 class="font-black text-sm text-slate-900">Edit Profile</h4>
+        <button onclick="closeEditProfileModal()" class="text-slate-400 font-bold">✕</button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="text-[11px] font-bold text-slate-600 block mb-1">Name:</label>
+          <input id="editNameInput" type="text" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-600 block mb-1">Phone:</label>
+          <input id="editPhoneInput" type="tel" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-600 block mb-1">Address:</label>
+          <input id="editAddressInput" type="text" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-600 block mb-1">Landmark:</label>
+          <select id="editLandmarkSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold"></select>
+        </div>
+        <button onclick="saveProfileChanges()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-black text-xs py-2.5 rounded-xl shadow-md">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Realtime Bus & Data Script Dependencies -->
+  <script src="data.js?v=3.1"></script>
+  <script src="realtime-sync.js?v=3.1"></script>
+
+  <!-- ================= MAIN APP SCRIPT ================= -->
+  <script>
+    // Global State
+    let cart = [];
+    let selectedCategory = 'all';
+    let selectedVegMode = 'all'; // 'all', 'veg', 'nonveg'
+    let selectedRestaurantId = null;
+    let selectedRestaurantName = null;
+    let searchQuery = '';
+    let sortBy = 'relevance';
+    let selectedLandmark = 'Bus Stand Circle, Kodad';
+    let customerLiveCoords = null;
+    let currentBannerIdx = 0;
+    let bannerInterval = null;
+    let activeOrderId = RealtimeBus.getActiveOrderId();
+    let leafletMap = null;
+    let activeCoupon = null;
+    let pendingCustomerPhone = '';
+    let selectedPaymentOption = 'COD'; // 'COD' or 'RAZORPAY'
+
+    function startApp() {
+      initUserProfile();
+      initSplashScreen();
+      renderFoodShowcase();
+      renderPromoCarousel();
+      renderCategories();
+      renderFrequentlyOrdered();
+      renderRestaurants();
+      renderCartAddOns();
+      renderQuickCouponPills();
+      applyFilters();
+      populateLandmarkDropdowns();
+      initRealtimeListener();
+      checkActiveOrder();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startApp);
+    } else {
+      startApp();
+    }
+
+    // 1. Splash Screen with Letter Drop, Yellow Scooty on Line & Navigation Routing
+    function initSplashScreen() {
+      const splash = document.getElementById('splashScreen');
+      if (!splash) return;
+
+      // Start filling the line with bright yellow as the normal yellow scooty rolls on it (at 1.2s after letters drop)
+      setTimeout(() => {
+        const bar = document.getElementById('splashProgressBar');
+        if (bar) {
+          bar.style.transition = 'width 2.8s cubic-bezier(0.35, 0, 0.25, 1)';
+          bar.style.width = '100%';
+        }
+      }, 1200);
+
+      // Sequence:
+      // 0.0s - 1.2s: Letters drop down one by one (E, a, t, ., i, n)
+      // 1.2s - 4.0s: Normal yellow scooty rolls slowly left-to-right ON the line top of "Connecting Kodad..." as line fills with yellow
+      // 4.1s: As scooty reaches the end of the line, splash smoothly fades out and opens the app!
+      setTimeout(() => {
+        splash.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+          splash.style.display = 'none';
+
+          // Check if customer is already logged in
+          const currentUser = RealtimeBus.getCurrentUser();
+          if (currentUser && currentUser.isLoggedIn && currentUser.phone) {
+            console.log('Customer session restored:', currentUser.phone);
+          } else {
+            // New / unauthenticated visitor: show 3-box portal selector modal (Customer, Captain, Kitchen)
+            openAuthGateModal('selector');
+          }
+        }, 400);
+      }, 4100);
+    }
+
+    // 2. Food Showcase Slideshow (Requirement 1: Marquee Left-to-Right & Right-to-Left)
+    function renderFoodShowcase() {
+      const t1 = document.getElementById('foodShowcaseTrack1');
+      const t2 = document.getElementById('foodShowcaseTrack2');
+      if (!KODAD_DATA.foodShowcase || !t1 || !t2) return;
+
+      const items = KODAD_DATA.foodShowcase;
+      const html1 = [...items, ...items].map(f => `
+        <div onclick="filterByFoodSearch('${f.name}')" class="flex items-center gap-2.5 bg-white py-1.5 px-3 rounded-2xl border border-slate-200 shadow-xs shrink-0 cursor-pointer hover:border-orange-400 hover:shadow-md transition">
+          <img src="${f.image}" alt="${f.name}" class="w-10 h-10 rounded-xl object-cover shrink-0">
+          <div>
+            <h5 class="font-black text-xs text-slate-900 whitespace-nowrap">${f.name}</h5>
+            <div class="flex items-center gap-1.5 text-[10px]">
+              <span class="font-bold text-orange-600">₹${f.price}</span>
+              <span class="text-slate-400">•</span>
+              <span class="${f.isVeg ? 'text-emerald-700' : 'text-rose-700'} font-bold">${f.isVeg ? 'Veg' : 'Non-Veg'}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      t1.innerHTML = html1;
+
+      // Reverse order for Track 2
+      const reversed = [...items].reverse();
+      const html2 = [...reversed, ...reversed].map(f => `
+        <div onclick="filterByFoodSearch('${f.name}')" class="flex items-center gap-2.5 bg-white py-1.5 px-3 rounded-2xl border border-slate-200 shadow-xs shrink-0 cursor-pointer hover:border-orange-400 hover:shadow-md transition">
+          <img src="${f.image}" alt="${f.name}" class="w-10 h-10 rounded-xl object-cover shrink-0">
+          <div>
+            <h5 class="font-black text-xs text-slate-900 whitespace-nowrap">${f.name}</h5>
+            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">${f.tag || 'Special'}</span>
+          </div>
+        </div>
+      `).join('');
+
+      t2.innerHTML = html2;
+    }
+
+    function filterByFoodSearch(name) {
+      const q = name.split(' ')[0];
+      handleSearch(q);
+      const heading = document.getElementById('dishesHeading');
+      if (heading) heading.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 3. Voice Search Integration (Requirement 1)
+    function startVoiceSearch() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Voice search is not supported on this browser. Please type in the search box.");
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-IN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      const vBtn = document.getElementById('voiceSearchBtn');
+      const mVBtn = document.getElementById('mobileVoiceBtn');
+      [vBtn, mVBtn].forEach(b => { if (b) b.classList.add('animate-pulse', 'text-rose-600', 'bg-rose-50'); });
+
+      const input = document.getElementById('mainSearchInput');
+      const mInput = document.getElementById('mobileSearchInput');
+      [input, mInput].forEach(i => { if (i) i.placeholder = '🎙️ Listening... Speak dish or restaurant name...'; });
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript;
+        [input, mInput].forEach(i => { if (i) i.value = text; });
+        handleSearch(text);
+      };
+
+      recognition.onerror = () => {
+        [input, mInput].forEach(i => { if (i) i.placeholder = 'Search restaurants, dishes, bakery, meat...'; });
+      };
+
+      recognition.onend = () => {
+        [vBtn, mVBtn].forEach(b => { if (b) b.classList.remove('animate-pulse', 'text-rose-600', 'bg-rose-50'); });
+        [input, mInput].forEach(i => { if (i && !i.value) i.placeholder = 'Search restaurants, dishes, bakery, meat...'; });
+      };
+
+      recognition.start();
+    }
+
+    function handleSearch(term) {
+      searchQuery = (term || '').trim();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !searchQuery);
+      applyFilters();
+    }
+
+    function clearSearchInput() {
+      const input = document.getElementById('mainSearchInput');
+      const mInput = document.getElementById('mobileSearchInput');
+      [input, mInput].forEach(i => { if (i) i.value = ''; });
+      handleSearch('');
+    }
+
+    // 4. Promo Carousel for Restaurant Ads (Requirement 5)
+    function renderPromoCarousel() {
+      const track = document.getElementById('carouselTrack');
+      const dots = document.getElementById('carouselDots');
+      if (!track || !KODAD_DATA.banners) return;
+
+      track.innerHTML = KODAD_DATA.banners.map((b, i) => `
+        <div class="w-full flex-shrink-0 bg-gradient-to-r ${b.bgGradient} p-5 sm:p-6 text-white flex flex-col justify-between min-h-[140px] sm:min-h-[160px]">
+          <div>
+            <span class="inline-block bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs mb-1.5">
+              ${b.badge}
+            </span>
+            <h3 class="text-base sm:text-xl font-black drop-shadow-xs">${b.title}</h3>
+            <p class="text-xs text-white/90 font-medium max-w-md line-clamp-2 mt-1">${b.subtitle}</p>
+          </div>
+          <div class="mt-3">
+            <button onclick="handleBannerAction('${b.actionType}', '${b.categoryId || ''}')" class="bg-white text-slate-900 hover:bg-orange-50 font-black text-xs px-4 py-2 rounded-xl transition shadow-md active:scale-95">
+              ${b.actionText} ➔
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      if (dots) {
+        dots.innerHTML = KODAD_DATA.banners.map((_, i) => `
+          <button onclick="setCarouselSlide(${i})" class="w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-orange-600 w-5' : 'bg-slate-300'}"></button>
+        `).join('');
+      }
+
+      startCarouselAutoPlay();
+    }
+
+    function setCarouselSlide(idx) {
+      currentBannerIdx = idx;
+      const track = document.getElementById('carouselTrack');
+      if (track) track.style.transform = `translateX(-${idx * 100}%)`;
+      const dots = document.querySelectorAll('#carouselDots button');
+      dots.forEach((d, i) => {
+        d.className = i === idx ? 'w-5 h-2 rounded-full bg-orange-600 transition-all' : 'w-2 h-2 rounded-full bg-slate-300 transition-all';
+      });
+    }
+
+    function nextCarouselSlide() {
+      currentBannerIdx = (currentBannerIdx + 1) % KODAD_DATA.banners.length;
+      setCarouselSlide(currentBannerIdx);
+    }
+
+    function prevCarouselSlide() {
+      currentBannerIdx = (currentBannerIdx - 1 + KODAD_DATA.banners.length) % KODAD_DATA.banners.length;
+      setCarouselSlide(currentBannerIdx);
+    }
+
+    function startCarouselAutoPlay() {
+      if (bannerInterval) clearInterval(bannerInterval);
+      bannerInterval = setInterval(nextCarouselSlide, 5000);
+    }
+
+    function handleBannerAction(type, arg) {
+      if (type === 'call') {
+        window.location.href = 'tel:9640103505';
+      } else if (type === 'category') {
+        filterCategory(arg || 'all');
+      } else if (type === 'coupons') {
+        toggleCartDrawer();
+      }
+    }
+
+    // 5. Clean Veg / Non-Veg Segmented Switch (Requirement 5)
+    function setVegFilter(mode) {
+      selectedVegMode = mode;
+      const btnAll = document.getElementById('filterAllBtn');
+      const btnVeg = document.getElementById('filterVegBtn');
+      const btnNonVeg = document.getElementById('filterNonVegBtn');
+
+      [btnAll, btnVeg, btnNonVeg].forEach(b => {
+        if (b) b.className = 'px-3.5 py-1.5 rounded-xl transition text-slate-600 hover:text-slate-900';
+      });
+
+      if (mode === 'all' && btnAll) {
+        btnAll.className = 'px-3.5 py-1.5 rounded-xl transition bg-slate-900 text-white shadow-xs font-black';
+      } else if (mode === 'veg' && btnVeg) {
+        btnVeg.className = 'px-3.5 py-1.5 rounded-xl transition bg-emerald-600 text-white shadow-xs font-black';
+      } else if (mode === 'nonveg' && btnNonVeg) {
+        btnNonVeg.className = 'px-3.5 py-1.5 rounded-xl transition bg-rose-600 text-white shadow-xs font-black';
+      }
+
+      applyFilters();
+      renderRestaurants();
+    }
+
+    function handleSortChange(val) {
+      sortBy = val;
+      applyFilters();
+    }
+
+    // 6. Categories Registry (Requirement 2)
+    function renderCategories() {
+      const container = document.getElementById('categoryContainer');
+      if (!container || !KODAD_DATA.categories) return;
+
+      container.innerHTML = KODAD_DATA.categories.map(c => {
+        const isSelected = selectedCategory === c.id;
+        return `
+          <button 
+            onclick="filterCategory('${c.id}')"
+            class="shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-black transition shadow-xs ${
+              isSelected 
+                ? 'bg-orange-600 text-white border-orange-600 shadow-md' 
+                : 'bg-white text-slate-700 border-slate-200 hover:border-orange-400'
+            }"
+          >
+            <span class="text-base">${c.icon}</span>
+            <span>${c.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function filterCategory(catId) {
+      selectedCategory = (selectedCategory === catId && catId !== 'all') ? 'all' : catId;
+      selectedRestaurantId = null;
+      selectedRestaurantName = null;
+      renderCategories();
+      renderRestaurants();
+      applyFilters();
+    }
+
+    // 7. Frequently Ordered in Kodad (Requirement 6)
+    function renderFrequentlyOrdered() {
+      const grid = document.getElementById('frequentlyOrderedGrid');
+      if (!grid) return;
+
+      const allProds = RealtimeBus.getProducts ? RealtimeBus.getProducts() : (KODAD_DATA.products || []);
+      const frequent = allProds.filter(p => p.isFrequentlyOrdered || p.rating >= 4.8).slice(0, 6);
+
+      if (frequent.length === 0) {
+        grid.parentElement.style.display = 'none';
+        return;
+      }
+
+      grid.parentElement.style.display = 'block';
+      grid.innerHTML = frequent.map(item => {
+        const inCart = cart.find(c => c.id === item.id);
+        const qty = inCart ? inCart.quantity : 0;
+        return `
+          <div class="bg-white rounded-2xl p-2.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:border-orange-400 transition group">
+            <div class="relative h-28 rounded-xl overflow-hidden mb-2 bg-slate-100">
+              <img src="${item.image}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+              <span class="absolute top-1.5 left-1.5 p-0.5 rounded bg-white shadow-xs">
+                <span class="w-3 h-3 rounded-xs border ${item.isVeg ? 'border-emerald-600' : 'border-rose-600'} flex items-center justify-center p-0.5">
+                  <span class="w-1.5 h-1.5 rounded-full ${item.isVeg ? 'bg-emerald-600' : 'bg-rose-600'}"></span>
+                </span>
+              </span>
+              <span class="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+                ★ ${item.rating || 4.8}
+              </span>
+            </div>
+            <div>
+              <h5 class="font-black text-xs text-slate-900 line-clamp-1">${item.name}</h5>
+              <p class="text-[10px] text-slate-400 truncate">${item.restName || 'Kodad Store'}</p>
+              <div class="flex items-center justify-between mt-2 pt-1 border-t border-slate-100">
+                <span class="font-black text-xs text-slate-900">₹${item.price}</span>
+                ${qty > 0 ? `
+                  <div class="flex items-center bg-orange-600 text-white rounded-lg px-2 py-0.5 gap-2 text-xs font-black shadow-xs">
+                    <button onclick="updateCart('${item.id}', -1)">−</button>
+                    <span>${qty}</span>
+                    <button onclick="updateCart('${item.id}', 1)">+</button>
+                  </div>
+                ` : `
+                  <button onclick="updateCart('${item.id}', 1)" class="bg-orange-50 hover:bg-orange-600 text-orange-600 hover:text-white font-black text-[10px] px-2.5 py-1 rounded-lg border border-orange-200 transition">
+                    + ADD
+                  </button>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 8. Stores / Restaurants Explorer (Requirement 2: Open/Close Timings, Live Active/Inactive, Distance)
+    function renderRestaurants() {
+      const grid = document.getElementById('restaurantsGrid');
+      if (!grid) return;
+
+      let list = RealtimeBus.getRestaurants ? RealtimeBus.getRestaurants() : (KODAD_DATA.restaurants || []);
+
+      // Filter by category if not 'all'
+      if (selectedCategory !== 'all') {
+        list = list.filter(r => r.category === selectedCategory || (selectedCategory === 'restaurants' && (!r.category || r.category === 'restaurants')));
+      }
+
+      // Filter by Veg Mode
+      if (selectedVegMode === 'veg') {
+        list = list.filter(r => r.isVeg === true);
+      } else if (selectedVegMode === 'nonveg') {
+        list = list.filter(r => r.isVeg === false);
+      }
+
+      const heading = document.getElementById('storesSectionHeading');
+      const clearBtn = document.getElementById('clearStoreFilterBtn');
+      if (selectedRestaurantId) {
+        if (heading) heading.innerHTML = `<span>🍽️</span><span>${selectedRestaurantName} (Active Store)</span>`;
+        if (clearBtn) clearBtn.classList.remove('hidden');
+      } else {
+        if (heading) heading.innerHTML = `<span>🏪</span><span>Kodad Partner Stores & Hubs (${list.length})</span>`;
+        if (clearBtn) clearBtn.classList.add('hidden');
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-3xl p-6 text-center border border-slate-200 space-y-2">
+            <span class="text-3xl block">🏪</span>
+            <h4 class="font-black text-sm text-slate-800">No stores found in this category yet</h4>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">We are actively onboarding Kodad stores. Select another category or view all stores!</p>
+            <button onclick="filterCategory('all')" class="bg-orange-600 text-white font-black text-xs px-4 py-2 rounded-xl shadow-sm">Show All Stores</button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = list.map(r => {
+        const isOpen = r.isOpen !== false;
+        const isSelected = r.id === selectedRestaurantId;
+
+        return `
+          <div onclick="selectStoreFilter('${r.id}', '${r.name}')" class="bg-white rounded-3xl overflow-hidden border ${isSelected ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-slate-200'} hover:border-orange-400 hover:shadow-lg transition cursor-pointer flex flex-col justify-between group ${!isOpen ? 'opacity-75 bg-slate-50/50' : ''}">
+            <div class="relative h-40 overflow-hidden bg-slate-100">
+              <img src="${r.image}" alt="${r.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 ${!isOpen ? 'grayscale-[40%]' : ''}">
+              
+              <!-- Live Open / Closed Badge (Requirement 2) -->
+              <span class="absolute top-2.5 left-2.5 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1 ${
+                isOpen ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+              }">
+                <span class="w-1.5 h-1.5 rounded-full bg-white ${isOpen ? 'animate-pulse' : ''}"></span>
+                <span>${isOpen ? 'OPEN NOW' : 'CURRENTLY CLOSED'}</span>
+              </span>
+
+              <!-- Timings Badge -->
+              <div class="absolute bottom-2 left-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                <span>⏰</span>
+                <span>${r.timings || '10:00 AM - 10:30 PM'}</span>
+              </div>
+
+              <!-- Distance Badge -->
+              <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-lg">
+                📍 ${r.distance || '1.0 km'}
+              </div>
+            </div>
+
+            <div class="p-3.5 flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between gap-1.5">
+                  <h4 class="font-black text-sm text-slate-900 group-hover:text-orange-600 transition leading-snug">${r.name}</h4>
+                  <span class="bg-emerald-700 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shrink-0">
+                    ★ ${r.rating || 4.8}
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5 truncate">${r.cuisine || 'Kodad Specialty'}</p>
+                <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                  <span>📍 ${r.location || 'Kodad'}</span>
+                  <span>•</span>
+                  <span>⏱️ ${r.deliveryTime || '20 mins'}</span>
+                </p>
+              </div>
+
+              <button class="w-full mt-3 ${isOpen ? 'bg-orange-50 group-hover:bg-orange-600 text-orange-600 group-hover:text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed'} font-black text-xs py-2 rounded-xl transition flex items-center justify-center gap-1 border border-orange-200 group-hover:border-orange-600">
+                <span>${isOpen ? 'View Menu & Order' : 'Closed for Orders'}</span>
+                <span>➔</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectStoreFilter(restId, restName) {
+      if (selectedRestaurantId === restId) {
+        selectedRestaurantId = null;
+        selectedRestaurantName = null;
+      } else {
+        selectedRestaurantId = restId;
+        selectedRestaurantName = restName;
+      }
+      renderRestaurants();
+      applyFilters();
+      const h = document.getElementById('dishesHeading');
+      if (h) h.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function clearSelectedStore() {
+      selectedRestaurantId = null;
+      selectedRestaurantName = null;
+      renderRestaurants();
+      applyFilters();
+    }
+
+    // 9. Dishes Catalog & Filtering Engine
+    function applyFilters() {
+      const allProds = RealtimeBus.getProducts ? RealtimeBus.getProducts() : (KODAD_DATA.products || []);
+      let list = [...allProds];
+
+      // Filter by Store
+      if (selectedRestaurantId) {
+        list = list.filter(p => p.restId === selectedRestaurantId);
+      }
+
+      // Filter by Category
+      if (selectedCategory !== 'all') {
+        list = list.filter(p => p.category === selectedCategory);
+      }
+
+      // Filter by Veg Mode (Requirement 5)
+      if (selectedVegMode === 'veg') {
+        list = list.filter(p => p.isVeg === true);
+      } else if (selectedVegMode === 'nonveg') {
+        list = list.filter(p => p.isVeg === false);
+      }
+
+      // Filter by Search Query (Requirement 1)
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter(p => 
+          p.name.toLowerCase().includes(q) ||
+          (p.restName && p.restName.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q)) ||
+          (p.category && p.category.toLowerCase().includes(q))
+        );
+      }
+
+      // Sorting
+      if (sortBy === 'rating') {
+        list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      } else if (sortBy === 'priceAsc') {
+        list.sort((a, b) => a.price - b.price);
+      } else if (sortBy === 'priceDesc') {
+        list.sort((a, b) => b.price - a.price);
+      }
+
+      updateDishesHeading(list.length);
+      renderProductsGrid(list);
+    }
+
+    function updateDishesHeading(count) {
+      const heading = document.getElementById('dishesHeading');
+      if (!heading) return;
+
+      let title = 'All Dishes & Items';
+      if (selectedRestaurantName) {
+        title = `🍽️ ${selectedRestaurantName} Menu`;
+      } else if (selectedCategory !== 'all') {
+        const cat = KODAD_DATA.categories.find(c => c.id === selectedCategory);
+        title = cat ? `${cat.icon} ${cat.name}` : 'Dishes';
+      }
+
+      if (selectedVegMode === 'veg') title = `🌱 Pure Veg ${title}`;
+      else if (selectedVegMode === 'nonveg') title = `🍗 Non-Veg ${title}`;
+
+      heading.innerHTML = `
+        <div class="flex items-center justify-between w-full">
+          <div class="flex items-center gap-2">
+            <span>${title}</span>
+            <span class="text-xs bg-orange-100 text-orange-800 font-extrabold px-2 py-0.5 rounded-full">${count} items</span>
+          </div>
+          ${(selectedCategory !== 'all' || selectedRestaurantId || selectedVegMode !== 'all' || searchQuery) ? `
+            <button onclick="resetAllFilters()" class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200">
+              ✕ Reset
+            </button>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function resetAllFilters() {
+      selectedCategory = 'all';
+      selectedVegMode = 'all';
+      selectedRestaurantId = null;
+      selectedRestaurantName = null;
+      searchQuery = '';
+      clearSearchInput();
+      setVegFilter('all');
+      renderCategories();
+      renderRestaurants();
+      applyFilters();
+    }
+
+    function renderProductsGrid(list) {
+      const grid = document.getElementById('productsGrid');
+      if (!grid) return;
+
+      if (list.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 px-4 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+            <span class="text-4xl block">🥗</span>
+            <h4 class="font-black text-sm text-slate-800">No dishes match your active filter</h4>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">Try clearing search or toggling between Pure Veg & Non-Veg.</p>
+            <button onclick="resetAllFilters()" class="bg-orange-600 hover:bg-orange-700 text-white text-xs font-black px-4 py-2 rounded-xl shadow-sm">
+              Show All Dishes in Kodad
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // Check each product's store open status
+      const rests = RealtimeBus.getRestaurants ? RealtimeBus.getRestaurants() : (KODAD_DATA.restaurants || []);
+
+      grid.innerHTML = list.map(item => {
+        const inCart = cart.find(c => c.id === item.id);
+        const qty = inCart ? inCart.quantity : 0;
+        const rest = rests.find(r => r.id === item.restId);
+        const isStoreOpen = rest ? (rest.isOpen !== false) : true;
+
+        return `
+          <div class="bg-white rounded-3xl p-3 border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-orange-400 hover:shadow-md transition group">
+            <div class="relative h-44 rounded-2xl overflow-hidden mb-2.5 bg-slate-100">
+              <img src="${item.image}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+              
+              <!-- Veg / Non-Veg Icon & Badges -->
+              <div class="absolute top-2 left-2 flex items-center gap-1.5">
+                <span class="p-1 rounded-md bg-white/95 shadow-sm">
+                  <span class="w-3.5 h-3.5 rounded-xs border ${item.isVeg ? 'border-emerald-600' : 'border-rose-600'} flex items-center justify-center p-0.5">
+                    <span class="w-2 h-2 rounded-full ${item.isVeg ? 'bg-emerald-600' : 'bg-rose-600'}"></span>
+                  </span>
+                </span>
+                ${item.badge ? `<span class="bg-slate-900/90 text-white text-[9px] font-black px-2 py-0.5 rounded-md">${item.badge}</span>` : ''}
+              </div>
+
+              <!-- Rating Badge -->
+              <div class="absolute top-2 right-2 bg-emerald-700 text-white font-black text-[10px] px-1.5 py-0.5 rounded-md shadow-sm">
+                ★ ${item.rating || 4.8}
+              </div>
+
+              ${!isStoreOpen ? `
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center text-white text-xs font-black">
+                  🔴 Kitchen Closed
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate">${item.restName || 'Kodad Store'}</span>
+                <h4 class="font-black text-sm text-slate-900 leading-snug group-hover:text-orange-600 transition mt-0.5">${item.name}</h4>
+                <p class="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">${item.description}</p>
+              </div>
+
+              <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100">
+                <div class="flex items-baseline gap-1.5">
+                  <span class="text-base font-black text-slate-900">₹${item.price}</span>
+                  ${item.originalPrice ? `<span class="text-xs text-slate-400 line-through">₹${item.originalPrice}</span>` : ''}
+                </div>
+
+                ${!isStoreOpen ? `
+                  <span class="text-[10px] text-slate-400 font-bold">Unavailable</span>
+                ` : qty > 0 ? `
+                  <div class="flex items-center bg-orange-600 text-white rounded-xl px-2.5 py-1 gap-2.5 font-black text-xs shadow-md">
+                    <button onclick="updateCart('${item.id}', -1)" class="hover:opacity-80 font-black">−</button>
+                    <span>${qty}</span>
+                    <button onclick="updateCart('${item.id}', 1)" class="hover:opacity-80 font-black">+</button>
+                  </div>
+                ` : `
+                  <button onclick="updateCart('${item.id}', 1)" class="bg-orange-50 hover:bg-orange-600 text-orange-600 hover:text-white border border-orange-200 px-4 py-1.5 rounded-xl text-xs font-black transition active:scale-95 shadow-xs">
+                    + ADD
+                  </button>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 10. Cart Management & Calculations
+    function updateCart(itemId, delta) {
+      const allProds = RealtimeBus.getProducts ? RealtimeBus.getProducts() : (KODAD_DATA.products || []);
+      const product = allProds.find(p => p.id === itemId) || (KODAD_DATA.addOns && KODAD_DATA.addOns.find(a => a.id === itemId));
+      if (!product) return;
+
+      const idx = cart.findIndex(c => c.id === itemId);
+      if (idx >= 0) {
+        cart[idx].quantity += delta;
+        if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+      } else if (delta > 0) {
+        cart.push({ ...product, quantity: 1 });
+      }
+
+      renderCartUI();
+      applyFilters();
+      renderFrequentlyOrdered();
+    }
+
+    function renderCartUI() {
+      const count = cart.reduce((acc, c) => acc + c.quantity, 0);
+      const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+      const deliveryFee = count > 0 ? 30 : 0;
+      const discount = activeCoupon ? activeCoupon.discount : 0;
+      const grandTotal = Math.max(0, subtotal + deliveryFee - discount);
+
+      // Header Badges
+      const cartCountBadge = document.getElementById('cartCountBadge');
+      const cartTotalHeader = document.getElementById('cartTotalHeader');
+      if (cartCountBadge) {
+        cartCountBadge.textContent = count;
+        cartCountBadge.classList.toggle('hidden', count === 0);
+      }
+      if (cartTotalHeader) cartTotalHeader.textContent = `₹${grandTotal}`;
+
+      // Floating Mini Cart Bar
+      const miniBar = document.getElementById('mobileBottomCartBar');
+      if (miniBar) {
+        miniBar.classList.toggle('hidden', count === 0);
+        document.getElementById('miniCartCount').textContent = count;
+        document.getElementById('miniCartTotal').textContent = `₹${grandTotal}`;
+      }
+
+      // Drawer Content
+      document.getElementById('billSubtotal').textContent = `₹${subtotal}`;
+      document.getElementById('billGrandTotal').textContent = `₹${grandTotal}`;
+      document.getElementById('proceedBtnAmount').textContent = `₹${grandTotal}`;
+      document.getElementById('step2TotalDisplay').textContent = `₹${grandTotal}`;
+      document.getElementById('finalConfirmBtnAmount').textContent = `₹${grandTotal}`;
+
+      const proceedBtn = document.getElementById('proceedToPaymentBtn');
+      if (proceedBtn) proceedBtn.disabled = count === 0;
+
+      // Render Items in Cart
+      const listEl = document.getElementById('cartItemsList');
+      if (!listEl) return;
+
+      if (cart.length === 0) {
+        listEl.innerHTML = `
+          <div class="py-12 text-center text-slate-400 space-y-2">
+            <span class="text-4xl block">🛒</span>
+            <p class="font-black text-sm text-slate-700">Your Eat.in cart is empty</p>
+            <p class="text-xs">Add biryani, tiffins, meat or groceries to begin!</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = cart.map(item => `
+        <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+            <div class="min-w-0">
+              <h5 class="font-black text-xs text-slate-900 truncate">${item.name}</h5>
+              <p class="text-[10px] text-slate-500 font-bold">₹${item.price} each</p>
+            </div>
+          </div>
+          <div class="flex items-center bg-white border border-slate-300 rounded-xl px-2 py-0.5 gap-2 font-black text-xs shadow-xs">
+            <button onclick="updateCart('${item.id}', -1)" class="text-slate-600 hover:text-orange-600 font-black">−</button>
+            <span class="text-slate-900">${item.quantity}</span>
+            <button onclick="updateCart('${item.id}', 1)" class="text-slate-600 hover:text-orange-600 font-black">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleCartDrawer() {
+      const drawer = document.getElementById('cartDrawer');
+      if (drawer) drawer.classList.toggle('hidden');
+      backToCartItemsStep();
+    }
+
+    // 11. Two-Step Checkout & Payment Method Selection (Requirement 8)
+    function openPaymentMethodStep() {
+      if (cart.length === 0) return;
+
+      // Validate logged-in state
+      const user = RealtimeBus.getCurrentUser();
+      if (!user || !user.isLoggedIn) {
+        alert("Please login with your mobile number to complete your order!");
+        openAuthGateModal('customer');
+        return;
+      }
+
+      // Populate Step 2 Address Preview
+      const name = document.getElementById('custNameInput').value.trim() || user.name || 'Customer';
+      const address = document.getElementById('custAddressInput').value.trim() || user.address || 'Kodad';
+      const landmark = document.getElementById('custLandmarkSelect').value || selectedLandmark;
+
+      document.getElementById('step2CustomerName').textContent = name;
+      document.getElementById('step2CustomerAddress').textContent = `${address} ${customerLiveCoords ? '• [📍 Exact GPS Locked]' : ''}`;
+      document.getElementById('step2CustomerLandmark').textContent = `📍 Landmark: ${landmark}`;
+
+      // Switch views inside drawer
+      document.getElementById('cartStep1').classList.add('hidden');
+      document.getElementById('cartStep1Footer').classList.add('hidden');
+      document.getElementById('cartStep2').classList.remove('hidden');
+      document.getElementById('cartStep2Footer').classList.remove('hidden');
+      document.getElementById('cartStepBackBtn').classList.remove('hidden');
+      document.getElementById('cartHeaderTitle').textContent = 'Select Payment Method';
+    }
+
+    function backToCartItemsStep() {
+      const s1 = document.getElementById('cartStep1');
+      const s1F = document.getElementById('cartStep1Footer');
+      const s2 = document.getElementById('cartStep2');
+      const s2F = document.getElementById('cartStep2Footer');
+      const bBtn = document.getElementById('cartStepBackBtn');
+      const title = document.getElementById('cartHeaderTitle');
+
+      if (s1) s1.classList.remove('hidden');
+      if (s1F) s1F.classList.remove('hidden');
+      if (s2) s2.classList.add('hidden');
+      if (s2F) s2F.classList.add('hidden');
+      if (bBtn) bBtn.classList.add('hidden');
+      if (title) title.textContent = 'Your Eat.in Order';
+    }
+
+    function selectPaymentMethodOption(method) {
+      selectedPaymentOption = method;
+      const cardCOD = document.getElementById('paymentOptionCardCOD');
+      const cardRzp = document.getElementById('paymentOptionCardRazorpay');
+      const btnText = document.getElementById('finalConfirmBtnText');
+
+      if (method === 'COD') {
+        cardCOD.className = 'p-4 rounded-2xl border-2 border-orange-500 bg-orange-50/40 cursor-pointer transition shadow-xs flex items-center justify-between';
+        cardRzp.className = 'p-4 rounded-2xl border border-slate-200 hover:border-orange-400 bg-white cursor-pointer transition shadow-xs flex items-center justify-between';
+        document.querySelector('input[value="COD"]').checked = true;
+        if (btnText) btnText.innerHTML = `<span>Place Order with Cash on Delivery</span><span>➔</span>`;
+      } else {
+        cardRzp.className = 'p-4 rounded-2xl border-2 border-blue-600 bg-blue-50/40 cursor-pointer transition shadow-xs flex items-center justify-between';
+        cardCOD.className = 'p-4 rounded-2xl border border-slate-200 hover:border-orange-400 bg-white cursor-pointer transition shadow-xs flex items-center justify-between';
+        document.querySelector('input[value="RAZORPAY"]').checked = true;
+        if (btnText) btnText.innerHTML = `<span>Proceed to Razorpay Online Payment</span><span>➔</span>`;
+      }
+    }
+
+    function executeSelectedPaymentOrder() {
+      if (cart.length === 0) return;
+
+      const user = RealtimeBus.getCurrentUser() || {};
+      const custName = document.getElementById('custNameInput').value.trim() || user.name || 'Customer';
+      const custPhone = document.getElementById('custPhoneInput').value.trim() || user.phone || '9640103505';
+      const custAddress = document.getElementById('custAddressInput').value.trim() || user.address || 'Kodad';
+      const custLandmark = document.getElementById('custLandmarkSelect').value || selectedLandmark;
+
+      const landmarkObj = KODAD_DATA.landmarks.find(l => l.name === custLandmark) || KODAD_DATA.landmarks[0];
+      const custLat = customerLiveCoords ? customerLiveCoords.lat : landmarkObj.lat;
+      const custLng = customerLiveCoords ? customerLiveCoords.lng : landmarkObj.lng;
+
+      const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+      const discount = activeCoupon ? activeCoupon.discount : 0;
+      const total = Math.max(0, subtotal + 30 - discount);
+
+      const rests = RealtimeBus.getRestaurants ? RealtimeBus.getRestaurants() : (KODAD_DATA.restaurants || []);
+      const restObj = rests.find(r => r.id === cart[0].restId) || { id: cart[0].restId || 'rest-1', name: cart[0].restName || 'Kodad Kitchen' };
+
+      const orderData = {
+        customer: {
+          name: custName,
+          phone: custPhone,
+          address: custAddress + (customerLiveCoords ? ' [📍 Exact GPS Locked]' : ''),
+          landmark: custLandmark,
+          lat: custLat,
+          lng: custLng,
+          isExactGPS: !!customerLiveCoords
+        },
+        restaurant: {
+          id: restObj.id,
+          name: restObj.name
+        },
+        items: [...cart],
+        subtotal: subtotal,
+        deliveryFee: 30,
+        discount: discount,
+        total: total,
+        paymentMethod: selectedPaymentOption === 'COD' ? 'Cash on Delivery (COD)' : 'Online Payment (Razorpay)'
+      };
+
+      if (selectedPaymentOption === 'COD') {
+        // Place COD order instantly
+        completeOrderPlacement(orderData);
+      } else {
+        // Trigger Razorpay Standard Integration (Requirement 8)
+        triggerRazorpayCheckout(orderData);
+      }
+    }
+
+    // Razorpay Standard Integration (Requirement 8)
+    function triggerRazorpayCheckout(orderData) {
+      const options = {
+        key: KODAD_DATA.razorpayKey || 'rzp_test_eatin_kodad',
+        amount: Math.round(orderData.total * 100), // in paise
+        currency: 'INR',
+        name: 'Eat.in Kodad',
+        description: `Order delivery for ${orderData.customer.name}`,
+        image: 'icon-192.png',
+        handler: function(response) {
+          orderData.paymentMethod = 'Online Payment (Razorpay)';
+          orderData.paymentId = response.razorpay_payment_id || ('rzp_' + Date.now());
+          orderData.paymentStatus = 'Paid Online (Razorpay)';
+          completeOrderPlacement(orderData);
+        },
+        prefill: {
+          name: orderData.customer.name,
+          contact: orderData.customer.phone
+        },
+        theme: {
+          color: '#FF5A36'
+        },
+        modal: {
+          ondismiss: function() {
+            console.log('Razorpay modal closed');
+          }
+        }
+      };
+
+      if (typeof Razorpay !== 'undefined') {
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        // Fallback simulate or direct UPI confirmation
+        if (confirm(`Redirecting to secure Online Payment for ₹${orderData.total} (PhonePe, GPay, Paytm, Cards). Click OK to confirm payment.`)) {
+          orderData.paymentStatus = 'Paid Online';
+          completeOrderPlacement(orderData);
+        }
+      }
+    }
+
+    function completeOrderPlacement(orderData) {
+      const placedOrder = RealtimeBus.placeOrder(orderData);
+      activeOrderId = placedOrder.id;
+
+      cart = [];
+      activeCoupon = null;
+      renderCartUI();
+      applyFilters();
+      toggleCartDrawer();
+
+      if (typeof confetti === 'function') confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+
+      openTrackingModal(placedOrder);
+      checkActiveOrder();
+      RealtimeBus.Sounds.playBell();
+    }
+
+    // 12. Live Order Tracking & Silent 5-Minute Cancellation (Requirement 8)
+    function openTrackingModal(givenOrder = null) {
+      const order = givenOrder || RealtimeBus.getOrderById(activeOrderId);
+      if (!order) {
+        alert("No active order found to track right now!");
+        return;
+      }
+
+      document.getElementById('trackOrderIdDisplay').textContent = order.id;
+      document.getElementById('trackStatusBadge').textContent = order.status;
+      document.getElementById('trackOrderTotal').textContent = `₹${order.total}`;
+
+      // Update Doorstep Delivery Confirmation OTP (The Zomato Way)
+      const otpDisplay = document.getElementById('trackDeliveryOtpDisplay');
+      if (otpDisplay) {
+        otpDisplay.textContent = order.deliveryOtp || '----';
+      }
+
+      // Update Captain
+      const capName = document.getElementById('trackCaptainName');
+      const capVehicle = document.getElementById('trackCaptainVehicle');
+      const capCall = document.getElementById('trackCaptainCallBtn');
+      if (order.captain) {
+        if (capName) capName.textContent = order.captain.name;
+        if (capVehicle) capVehicle.textContent = `${order.captain.vehicle || 'Bike'} • ${order.captain.phone}`;
+        if (capCall) capCall.href = `tel:${order.captain.phone}`;
+      } else {
+        if (capName) capName.textContent = 'Auto-assigning Kodad Rider...';
+        if (capVehicle) capVehicle.textContent = 'Nearest captain being dispatched';
+        if (capCall) capCall.href = 'tel:9640103505';
+      }
+
+      // Order Items
+      const itemsList = document.getElementById('trackOrderItemsList');
+      if (itemsList && order.items) {
+        itemsList.innerHTML = order.items.map(i => `
+          <div class="flex justify-between">
+            <span>${i.quantity}x ${i.name}</span>
+            <span class="font-bold">₹${i.price * i.quantity}</span>
+          </div>
+        `).join('');
+      }
+
+      const waBtn = document.getElementById('trackWhatsAppSupportBtn');
+      if (waBtn) waBtn.href = RealtimeBus.getWhatsAppUrl(order);
+
+      // Hide or show cancel button based on active status
+      const cancelBtn = document.getElementById('trackCancelOrderBtn');
+      if (cancelBtn) {
+        cancelBtn.classList.toggle('hidden', order.status === 'DELIVERED' || order.status === 'CANCELLED');
+      }
+
+      document.getElementById('trackingModal').classList.remove('hidden');
+      const dock = document.getElementById('liveOrderFloatingDock');
+      if (dock) dock.classList.add('hidden');
+
+      setTimeout(() => {
+        initTrackingMap(order);
+      }, 200);
+    }
+
+    function closeTrackingModal() {
+      document.getElementById('trackingModal').classList.add('hidden');
+      checkActiveOrder();
+    }
+
+    // Silent 5-Minute Cancellation Action (Requirement 8)
+    function attemptCustomerCancelOrder() {
+      if (!activeOrderId) return;
+      const check = RealtimeBus.canCancelOrder(activeOrderId);
+
+      if (!check.allowed) {
+        alert(check.reason);
+        return;
+      }
+
+      if (confirm("Are you sure you want to cancel this order?")) {
+        RealtimeBus.cancelOrder(activeOrderId, "Customer cancelled via app");
+        alert("✓ Your order has been cancelled successfully.");
+        closeTrackingModal();
+        checkActiveOrder();
+        renderProfileDrawerContent();
+      }
+    }
+
+    function initTrackingMap(order) {
+      const allRests = RealtimeBus.getRestaurants ? RealtimeBus.getRestaurants() : (KODAD_DATA.restaurants || []);
+      const rest = allRests.find(r => r.id === (order.restaurant && order.restaurant.id)) || allRests[0] || { name: 'Restaurant', lat: 17.0015, lng: 79.9660 };
+      const landmark = KODAD_DATA.landmarks.find(l => l.name === order.customer.landmark) || KODAD_DATA.landmarks[0];
+      const custLat = order.customer.lat || landmark.lat;
+      const custLng = order.customer.lng || landmark.lng;
+
+      if (!leafletMap) {
+        leafletMap = L.map('trackingMap').setView([KODAD_DATA.center.lat, KODAD_DATA.center.lng], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        }).addTo(leafletMap);
+      } else {
+        leafletMap.invalidateSize();
+      }
+
+      leafletMap.eachLayer((layer) => {
+        if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+          leafletMap.removeLayer(layer);
+        }
+      });
+
+      const restIcon = L.divIcon({
+        html: `<div style="background-color:#FF5A36; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.3); border:2px solid white; font-size:15px;">🏪</div>`,
+        iconSize: [30, 30]
+      });
+
+      const custIcon = L.divIcon({
+        html: `<div style="background-color:#10b981; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.3); border:2px solid white; font-size:15px;">🏠</div>`,
+        iconSize: [30, 30]
+      });
+
+      L.marker([rest.lat, rest.lng], { icon: restIcon }).addTo(leafletMap).bindPopup(`<b>${rest.name}</b><br>Store Kitchen`);
+      L.marker([custLat, custLng], { icon: custIcon }).addTo(leafletMap).bindPopup(`<b>${order.customer.name}</b><br>${order.customer.address}`);
+
+      // Rider Marker if assigned
+      if (order.captain) {
+        const rLat = order.captain.lat || (rest.lat + custLat) / 2;
+        const rLng = order.captain.lng || (rest.lng + custLng) / 2;
+        const riderIcon = L.divIcon({
+          html: `<div style="background-color:#0f172a; color:white; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.4); border:2px solid #FF5A36; font-size:16px;">🛵</div>`,
+          iconSize: [32, 32]
+        });
+        L.marker([rLat, rLng], { icon: riderIcon }).addTo(leafletMap).bindPopup(`<b>${order.captain.name} (Rider)</b><br>Delivery in progress`);
+        L.polyline([[rest.lat, rest.lng], [rLat, rLng], [custLat, custLng]], { color: '#FF5A36', weight: 4, dashArray: '6, 6' }).addTo(leafletMap);
+      } else {
+        L.polyline([[rest.lat, rest.lng], [custLat, custLng]], { color: '#FF5A36', weight: 3, dashArray: '4, 6' }).addTo(leafletMap);
+      }
+
+      leafletMap.fitBounds([[rest.lat, rest.lng], [custLat, custLng]], { padding: [30, 30] });
+    }
+
+    function checkActiveOrder() {
+      const activeId = RealtimeBus.getActiveOrderId();
+      const trackBtn = document.getElementById('trackActiveOrderBtn');
+      const navBadge = document.getElementById('navOrdersBadge');
+      const dock = document.getElementById('liveOrderFloatingDock');
+
+      if (activeId) {
+        const order = RealtimeBus.getOrderById(activeId);
+        if (order && order.status !== 'DELIVERED' && order.status !== 'CANCELLED') {
+          if (trackBtn) trackBtn.classList.remove('hidden');
+          if (navBadge) navBadge.classList.remove('hidden');
+
+          // Update Zomato-Style Live Floating Order Dock
+          if (dock) {
+            const trackingModal = document.getElementById('trackingModal');
+            const isModalOpen = trackingModal && !trackingModal.classList.contains('hidden');
+            if (!isModalOpen) {
+              dock.classList.remove('hidden');
+            } else {
+              dock.classList.add('hidden');
+            }
+
+            const dockRestName = document.getElementById('dockRestName');
+            const dockOrderId = document.getElementById('dockOrderId');
+            const dockStatusTitle = document.getElementById('dockStatusTitle');
+            const dockStatusIcon = document.getElementById('dockStatusIcon');
+            const dockProgressBar = document.getElementById('dockProgressBar');
+
+            if (dockRestName) dockRestName.textContent = order.restaurant?.name || 'Kodad Store';
+            if (dockOrderId) dockOrderId.textContent = `#${order.id}`;
+
+            if (order.status === 'PLACED') {
+              if (dockStatusIcon) dockStatusIcon.textContent = '⏳';
+              if (dockStatusTitle) dockStatusTitle.textContent = 'Order Placed • Waiting for kitchen';
+              if (dockProgressBar) dockProgressBar.style.width = '20%';
+            } else if (order.status === 'ACCEPTED' || order.status === 'COOKING') {
+              if (dockStatusIcon) dockStatusIcon.textContent = '👨‍🍳';
+              if (dockStatusTitle) dockStatusTitle.textContent = 'Kitchen is cooking your food...';
+              if (dockProgressBar) dockProgressBar.style.width = '45%';
+            } else if (order.status === 'ASSIGNED') {
+              if (dockStatusIcon) dockStatusIcon.textContent = '🛵';
+              if (dockStatusTitle) dockStatusTitle.textContent = `Captain ${order.captain?.name || 'Rider'} assigned`;
+              if (dockProgressBar) dockProgressBar.style.width = '65%';
+            } else if (order.status === 'PICKED_UP') {
+              if (dockStatusIcon) dockStatusIcon.textContent = '🚀';
+              if (dockStatusTitle) dockStatusTitle.textContent = `On the way with Captain ${order.captain?.name || 'Rider'}`;
+              if (dockProgressBar) dockProgressBar.style.width = '85%';
+            } else if (order.status === 'ARRIVED') {
+              if (dockStatusIcon) dockStatusIcon.textContent = '🔔';
+              if (dockStatusTitle) dockStatusTitle.textContent = `At Doorstep! OTP: ${order.deliveryOtp || '----'}`;
+              if (dockProgressBar) dockProgressBar.style.width = '95%';
+            }
+          }
+          return;
+        }
+      }
+      if (trackBtn) trackBtn.classList.add('hidden');
+      if (navBadge) navBadge.classList.add('hidden');
+      if (dock) dock.classList.add('hidden');
+    }
+
+    // 13. Multi-Portal Auth (Customer, Captain Rider & Restaurant Partner)
+    let pendingCaptainPhone = '';
+    let pendingRestaurantPhone = '';
+
+    function openAuthGateModal(role = 'selector') {
+      const modal = document.getElementById('authGateModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      switchAuthView(role);
+    }
+
+    function closeAuthGateModal() {
+      const modal = document.getElementById('authGateModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function switchAuthView(viewName = 'selector') {
+      const selView = document.getElementById('authRoleSelectorView');
+      const custView = document.getElementById('authCustomerView');
+      const capView = document.getElementById('authCaptainView');
+      const restView = document.getElementById('authRestaurantView');
+
+      if (selView) selView.classList.add('hidden');
+      if (custView) custView.classList.add('hidden');
+      if (capView) capView.classList.add('hidden');
+      if (restView) restView.classList.add('hidden');
+
+      if (viewName === 'customer') {
+        if (custView) custView.classList.remove('hidden');
+        document.getElementById('customerPhoneStep').classList.remove('hidden');
+        document.getElementById('customerOtpStep').classList.add('hidden');
+        document.getElementById('customerProfileStep').classList.add('hidden');
+        const inp = document.getElementById('authPhoneInput');
+        if (inp) { inp.focus(); }
+      } else if (viewName === 'captain') {
+        if (capView) capView.classList.remove('hidden');
+        document.getElementById('captainPhoneStep').classList.remove('hidden');
+        document.getElementById('captainOtpStep').classList.add('hidden');
+        const inp = document.getElementById('authCaptainPhoneInput');
+        if (inp) { inp.focus(); }
+      } else if (viewName === 'restaurant') {
+        if (restView) restView.classList.remove('hidden');
+        document.getElementById('restaurantPhoneStep').classList.remove('hidden');
+        document.getElementById('restaurantOtpStep').classList.add('hidden');
+        const inp = document.getElementById('authRestPhoneInput');
+        if (inp) { inp.focus(); }
+      } else {
+        // Default: Show 3 prominent boxes (Customer, Captain, Kitchen)
+        if (selView) selView.classList.remove('hidden');
+      }
+    }
+
+    // --- Customer OTP Flow ---
+    function handleSendCustomerOtp() {
+      const input = document.getElementById('authPhoneInput');
+      const phone = (input.value || '').replace(/\D/g, '').slice(-10);
+
+      if (phone.length < 10) {
+        alert("Please enter a valid 10-digit mobile number!");
+        return;
+      }
+
+      pendingCustomerPhone = phone;
+      const otpCode = RealtimeBus.generateOtp(phone);
+      document.getElementById('authOtpPhoneTarget').textContent = `+91 ${phone}`;
+
+      // Native SMS WebOTP API Auto-Read listener
+      RealtimeBus.listenForWebOtp('authOtpInput', (code) => {
+        handleVerifyCustomerOtp();
+      });
+
+      document.getElementById('customerPhoneStep').classList.add('hidden');
+      document.getElementById('customerOtpStep').classList.remove('hidden');
+      const otpIn = document.getElementById('authOtpInput');
+      if (otpIn) {
+        otpIn.value = ''; // Clean input, no fake demo values (Requirement 4)
+        otpIn.focus();
+      }
+    }
+
+    function backToCustomerPhone() {
+      document.getElementById('customerOtpStep').classList.add('hidden');
+      document.getElementById('customerPhoneStep').classList.remove('hidden');
+    }
+
+    function handleVerifyCustomerOtp() {
+      const otpVal = document.getElementById('authOtpInput').value.trim();
+      const res = RealtimeBus.verifyOtp(pendingCustomerPhone, otpVal);
+
+      if (!res.success) {
+        alert(res.message || "Incorrect or expired OTP code!");
+        return;
+      }
+
+      const existing = RealtimeBus.getCustomerByPhone(pendingCustomerPhone);
+      if (existing && existing.name && !existing.name.startsWith('Customer')) {
+        RealtimeBus.setCurrentUser(existing);
+        initUserProfile();
+        closeAuthGateModal();
+        // Auto GPS check
+        setTimeout(() => { captureCustomerLiveGPS(true); }, 500);
+      } else {
+        // First-Time Profile Onboarding Step
+        document.getElementById('customerOtpStep').classList.add('hidden');
+        document.getElementById('customerProfileStep').classList.remove('hidden');
+        const nInput = document.getElementById('newCustName');
+        if (nInput) nInput.focus();
+      }
+    }
+
+    function handleSaveNewCustomerProfile() {
+      const name = document.getElementById('newCustName').value.trim() || `Customer (${pendingCustomerPhone.slice(-4)})`;
+      const landmark = document.getElementById('newCustLandmark').value || selectedLandmark;
+
+      const profile = RealtimeBus.saveCustomerProfile({
+        phone: pendingCustomerPhone,
+        name: name,
+        landmark: landmark,
+        address: `${landmark}, Kodad`
+      });
+
+      RealtimeBus.setCurrentUser(profile);
+      initUserProfile();
+      closeAuthGateModal();
+
+      // Automatically lock live GPS location on first login! (Requirement 7)
+      setTimeout(() => {
+        captureCustomerLiveGPS(true);
+      }, 500);
+    }
+
+    // --- Captain Rider OTP Flow ---
+    function handleSendCaptainOtp() {
+      const input = document.getElementById('authCaptainPhoneInput');
+      const phone = (input.value || '').replace(/\D/g, '').slice(-10);
+
+      if (phone.length < 10) {
+        alert("Please enter a valid 10-digit mobile number for Captain login!");
+        return;
+      }
+
+      pendingCaptainPhone = phone;
+      RealtimeBus.generateOtp(phone);
+      document.getElementById('authCaptainOtpPhoneTarget').textContent = `+91 ${phone}`;
+
+      const existingCap = RealtimeBus.getCaptainByPhone(phone);
+      const newFields = document.getElementById('captainNewProfileFields');
+      if (newFields) {
+        if (existingCap) {
+          newFields.classList.add('hidden');
+        } else {
+          newFields.classList.remove('hidden');
+        }
+      }
+
+      document.getElementById('captainPhoneStep').classList.add('hidden');
+      document.getElementById('captainOtpStep').classList.remove('hidden');
+      const otpIn = document.getElementById('authCaptainOtpInput');
+      if (otpIn) {
+        otpIn.value = '';
+        otpIn.focus();
+      }
+    }
+
+    function backToCaptainPhone() {
+      document.getElementById('captainOtpStep').classList.add('hidden');
+      document.getElementById('captainPhoneStep').classList.remove('hidden');
+    }
+
+    function handleVerifyCaptainOtp() {
+      const otpVal = document.getElementById('authCaptainOtpInput').value.trim();
+      const res = RealtimeBus.verifyOtp(pendingCaptainPhone, otpVal);
+
+      if (!res.success) {
+        alert(res.message || "Incorrect or expired OTP code!");
+        return;
+      }
+
+      let cap = RealtimeBus.getCaptainByPhone(pendingCaptainPhone);
+      if (!cap) {
+        const name = (document.getElementById('newCaptainName')?.value || '').trim() || `Captain ${pendingCaptainPhone.slice(-4)}`;
+        const vehicle = (document.getElementById('newCaptainVehicle')?.value || '').trim() || 'Bike (Kodad Fleet)';
+        cap = RealtimeBus.registerCaptain({
+          name: name,
+          phone: pendingCaptainPhone,
+          vehicle: vehicle,
+          rating: 4.9,
+          totalDeliveries: 0,
+          status: 'AVAILABLE'
+        });
+      }
+
+      RealtimeBus.setCurrentCaptain(cap);
+      closeAuthGateModal();
+      window.location.href = 'captain.html';
+    }
+
+    // --- Restaurant / Dhaba Kitchen OTP Flow ---
+    function handleSendRestaurantOtp() {
+      const input = document.getElementById('authRestPhoneInput');
+      const phone = (input.value || '').replace(/\D/g, '').slice(-10);
+
+      if (phone.length < 10) {
+        alert("Please enter a valid 10-digit owner mobile number!");
+        return;
+      }
+
+      pendingRestaurantPhone = phone;
+      RealtimeBus.generateOtp(phone);
+      document.getElementById('authRestOtpPhoneTarget').textContent = `+91 ${phone}`;
+
+      document.getElementById('restaurantPhoneStep').classList.add('hidden');
+      document.getElementById('restaurantOtpStep').classList.remove('hidden');
+      const otpIn = document.getElementById('authRestOtpInput');
+      if (otpIn) {
+        otpIn.value = '';
+        otpIn.focus();
+      }
+    }
+
+    function backToRestaurantPhone() {
+      document.getElementById('restaurantOtpStep').classList.add('hidden');
+      document.getElementById('restaurantPhoneStep').classList.remove('hidden');
+    }
+
+    function handleVerifyRestaurantOtp() {
+      const otpVal = document.getElementById('authRestOtpInput').value.trim();
+      const res = RealtimeBus.verifyOtp(pendingRestaurantPhone, otpVal);
+
+      if (!res.success) {
+        alert(res.message || "Incorrect or expired OTP code!");
+        return;
+      }
+
+      const allRests = (window.RealtimeBus && RealtimeBus.getRestaurants) ? RealtimeBus.getRestaurants() : (KODAD_DATA.restaurants || []);
+      let match = allRests.find(r => r.phone === pendingRestaurantPhone);
+      if (!match) {
+        match = {
+          id: 'rest-' + pendingRestaurantPhone,
+          name: 'Partner Kitchen (' + pendingRestaurantPhone.slice(-4) + ')',
+          cuisine: 'Multi-Cuisine',
+          location: 'Kodad',
+          ownerName: 'Kitchen Partner',
+          phone: pendingRestaurantPhone,
+          rating: 4.8,
+          deliveryTime: '25-30 mins',
+          distance: '1.2 km',
+          badge: 'Verified Kitchen',
+          image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60',
+          lat: 17.0015,
+          lng: 79.9660
+        };
+        if (window.RealtimeBus && RealtimeBus.saveRestaurant) {
+          RealtimeBus.saveRestaurant(match);
+        }
+      }
+
+      localStorage.setItem('kodadeats_restaurant_id', match.id);
+      closeAuthGateModal();
+      window.location.href = 'restaurant.html';
+    }
+
+    function initUserProfile() {
+      const user = RealtimeBus.getCurrentUser();
+      const initialEl = document.getElementById('userInitialText');
+      const nameInput = document.getElementById('custNameInput');
+      const phoneInput = document.getElementById('custPhoneInput');
+      const addrInput = document.getElementById('custAddressInput');
+
+      if (user && user.isLoggedIn) {
+        if (initialEl) initialEl.textContent = (user.name || 'C').charAt(0).toUpperCase();
+        if (nameInput) nameInput.value = user.name || 'Customer';
+        if (phoneInput) phoneInput.value = user.phone || '';
+        if (addrInput) addrInput.value = user.address || 'Kodad';
+      } else {
+        if (initialEl) initialEl.textContent = '👤';
+      }
+    }
+
+    function logoutCurrentUser() {
+      if (confirm("Are you sure you want to log out of Eat.in?")) {
+        RealtimeBus.logoutUser();
+        initUserProfile();
+        closeProfileDrawer();
+        openAuthGateModal('selector');
+      }
+    }
+
+    // 14. Live GPS & Landmark Detection (Requirement 7)
+    function captureCustomerLiveGPS(isSilent = false) {
+      if (!navigator.geolocation) {
+        if (!isSilent) alert("Geolocation is not supported by your browser.");
+        return;
+      }
+
+      const btn = document.getElementById('gpsCaptureBtnText');
+      if (btn && !isSilent) btn.textContent = "⏳ Fetching live GPS...";
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          customerLiveCoords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          };
+
+          // Find nearest landmark
+          let closest = KODAD_DATA.landmarks[0];
+          let minDist = 999999;
+          KODAD_DATA.landmarks.forEach(l => {
+            const d = Math.hypot(l.lat - pos.coords.latitude, l.lng - pos.coords.longitude);
+            if (d < minDist) { minDist = d; closest = l; }
+          });
+
+          selectedLandmark = closest.name;
+          document.getElementById('currentLocationText').textContent = closest.name;
+          const badge = document.getElementById('headerGpsBadge');
+          if (badge) badge.classList.remove('hidden');
+
+          const lSelect = document.getElementById('custLandmarkSelect');
+          if (lSelect) lSelect.value = closest.name;
+
+          if (btn) btn.textContent = "✓ Live House GPS Locked!";
+          const card = document.getElementById('gpsStatusCard');
+          const disp = document.getElementById('gpsCoordsDisplay');
+          if (card && disp) {
+            card.classList.remove('hidden');
+            disp.textContent = `📍 Live GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+          }
+        },
+        (err) => {
+          console.warn("GPS error:", err);
+          if (btn) btn.textContent = "Use My Exact Live House GPS";
+          if (!isSilent) alert("Could not fetch GPS. Please ensure Location Permissions are enabled in your browser.");
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    function clearLiveGPS() {
+      customerLiveCoords = null;
+      const btn = document.getElementById('gpsCaptureBtnText');
+      const card = document.getElementById('gpsStatusCard');
+      const badge = document.getElementById('headerGpsBadge');
+      if (btn) btn.textContent = "Use My Exact Live House GPS";
+      if (card) card.classList.add('hidden');
+      if (badge) badge.classList.add('hidden');
+    }
+
+    function populateLandmarkDropdowns() {
+      const selects = [document.getElementById('custLandmarkSelect'), document.getElementById('newCustLandmark'), document.getElementById('editLandmarkSelect')];
+      selects.forEach(s => {
+        if (!s) return;
+        s.innerHTML = KODAD_DATA.landmarks.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+      });
+
+      const modalList = document.getElementById('locationLandmarksList');
+      if (modalList) {
+        modalList.innerHTML = KODAD_DATA.landmarks.map(l => `
+          <button onclick="selectLandmark('${l.name}')" class="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-orange-500 hover:bg-orange-50/50 transition text-xs font-bold text-slate-800 flex items-center justify-between">
+            <span>📍 ${l.name}</span>
+            <span class="text-[10px] text-slate-400">Select</span>
+          </button>
+        `).join('');
+      }
+    }
+
+    function selectLandmark(name) {
+      selectedLandmark = name;
+      document.getElementById('currentLocationText').textContent = name;
+      const select = document.getElementById('custLandmarkSelect');
+      if (select) select.value = name;
+      closeLocationModal();
+    }
+
+    function openLocationModal() { document.getElementById('locationModal').classList.remove('hidden'); }
+    function closeLocationModal() { document.getElementById('locationModal').classList.add('hidden'); }
+
+    // 15. Bottom Navigation Bar Tab Switching (Requirement 6)
+    function navSwitchTab(tab) {
+      ['navBtnHome', 'navBtnCategories', 'navBtnOrders', 'navBtnProfile'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.className = 'flex flex-col items-center justify-center py-1 text-slate-500 hover:text-orange-600 transition';
+      });
+
+      if (tab === 'home') {
+        const el = document.getElementById('navBtnHome');
+        if (el) el.className = 'flex flex-col items-center justify-center py-1 text-orange-600 font-black transition';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        clearSelectedStore();
+      } else if (tab === 'categories') {
+        const el = document.getElementById('navBtnCategories');
+        if (el) el.className = 'flex flex-col items-center justify-center py-1 text-orange-600 font-black transition';
+        const sec = document.getElementById('categoriesSection');
+        if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'orders') {
+        const el = document.getElementById('navBtnOrders');
+        if (el) el.className = 'flex flex-col items-center justify-center py-1 text-orange-600 font-black transition';
+        openProfileDrawer('orders');
+      } else if (tab === 'profile') {
+        const el = document.getElementById('navBtnProfile');
+        if (el) el.className = 'flex flex-col items-center justify-center py-1 text-orange-600 font-black transition';
+        openProfileDrawer('profile');
+      }
+    }
+
+    // 16. Profile Drawer & Past Orders History
+    function openProfileDrawer(section = 'profile') {
+      const user = RealtimeBus.getCurrentUser();
+      if (!user || !user.isLoggedIn || !user.phone) {
+        openAuthGateModal('selector');
+        return;
+      }
+      renderProfileDrawerContent();
+      document.getElementById('profileDrawer').classList.remove('hidden');
+    }
+
+    function closeProfileDrawer() {
+      document.getElementById('profileDrawer').classList.add('hidden');
+    }
+
+    function renderProfileDrawerContent() {
+      const user = RealtimeBus.getCurrentUser() || { name: 'Customer', phone: '9848123456', address: 'Kodad' };
+      document.getElementById('drawerUserInitial').textContent = (user.name || 'C').charAt(0).toUpperCase();
+      document.getElementById('drawerUserName').textContent = user.name || 'Customer';
+      document.getElementById('drawerUserPhone').textContent = `+91 ${user.phone || '--'}`;
+      document.getElementById('drawerUserAddress').textContent = user.address || 'Kodad Town';
+
+      const history = RealtimeBus.getUserOrderHistory ? RealtimeBus.getUserOrderHistory(user.phone) : [];
+      document.getElementById('drawerDeliveredCount').textContent = `${history.length} Orders`;
+
+      const listContainer = document.getElementById('drawerOrdersList');
+      if (!listContainer) return;
+
+      if (history.length === 0) {
+        listContainer.innerHTML = `
+          <div class="py-6 text-center text-slate-400 text-xs">
+            No past orders found. Your orders will appear here!
+          </div>
+        `;
+        return;
+      }
+
+      listContainer.innerHTML = history.map(o => {
+        const isActive = o.status !== 'DELIVERED' && o.status !== 'CANCELLED';
+        return `
+          <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-black text-slate-900">#${o.id} • ${o.restaurant?.name || 'Store'}</span>
+              <span class="font-black ${o.status === 'DELIVERED' ? 'text-emerald-700' : (o.status === 'CANCELLED' ? 'text-rose-700' : 'text-orange-600')} text-[10px] uppercase">${o.status}</span>
+            </div>
+            <p class="text-[11px] text-slate-500">${(o.items || []).map(i => `${i.quantity}x ${i.name}`).join(', ')}</p>
+            <div class="flex items-center justify-between pt-1 border-t border-slate-200 text-xs">
+              <span class="font-bold text-slate-900">₹${o.total}</span>
+              ${isActive ? `
+                <button onclick="closeProfileDrawer(); openTrackingModal(RealtimeBus.getOrderById('${o.id}'));" class="bg-orange-600 text-white font-black text-[10px] px-3 py-1 rounded-xl shadow-xs">
+                  🛵 Track Live
+                </button>
+              ` : `
+                <button onclick="reorderItems('${o.id}')" class="bg-white hover:bg-orange-50 text-orange-600 font-bold text-[10px] px-3 py-1 rounded-xl border border-orange-200">
+                  🔄 Reorder
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function reorderItems(orderId) {
+      const order = RealtimeBus.getOrderById(orderId);
+      if (!order) return;
+      cart = [...order.items];
+      renderCartUI();
+      closeProfileDrawer();
+      toggleCartDrawer();
+    }
+
+    function openEditProfileModal() {
+      const user = RealtimeBus.getCurrentUser() || {};
+      document.getElementById('editNameInput').value = user.name || '';
+      document.getElementById('editPhoneInput').value = user.phone || '';
+      document.getElementById('editAddressInput').value = user.address || '';
+      document.getElementById('editProfileModal').classList.remove('hidden');
+    }
+
+    function closeEditProfileModal() {
+      document.getElementById('editProfileModal').classList.add('hidden');
+    }
+
+    function saveProfileChanges() {
+      const name = document.getElementById('editNameInput').value.trim();
+      const phone = document.getElementById('editPhoneInput').value.trim();
+      const address = document.getElementById('editAddressInput').value.trim();
+      const landmark = document.getElementById('editLandmarkSelect').value;
+
+      const user = { name, phone, address, landmark, isLoggedIn: true };
+      RealtimeBus.setCurrentUser(user);
+      initUserProfile();
+      renderProfileDrawerContent();
+      closeEditProfileModal();
+      alert("✓ Profile updated successfully!");
+    }
+
+    // 17. Add-Ons & Coupons
+    function renderCartAddOns() {
+      const list = document.getElementById('cartAddOnsList');
+      if (!list || !KODAD_DATA.addOns) return;
+
+      list.innerHTML = KODAD_DATA.addOns.map(add => `
+        <div class="shrink-0 w-32 bg-white p-2 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="h-16 rounded-xl overflow-hidden mb-1 bg-slate-100">
+            <img src="${add.image}" alt="${add.name}" class="w-full h-full object-cover">
+          </div>
+          <h6 class="text-[10px] font-bold text-slate-900 truncate">${add.name}</h6>
+          <div class="flex items-center justify-between mt-1 pt-1 border-t border-slate-100">
+            <span class="text-[11px] font-black text-slate-900">₹${add.price}</span>
+            <button onclick="addAddOnToCart('${add.id}')" class="bg-orange-50 hover:bg-orange-600 text-orange-600 hover:text-white font-black text-[10px] px-2 py-0.5 rounded-lg border border-orange-200 transition">
+              + ADD
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addAddOnToCart(addOnId) {
+      const add = KODAD_DATA.addOns.find(a => a.id === addOnId);
+      if (!add) return;
+
+      const idx = cart.findIndex(c => c.id === add.id);
+      if (idx >= 0) cart[idx].quantity += 1;
+      else cart.push({ ...add, quantity: 1, restId: cart[0]?.restId || 'rest-1', restName: cart[0]?.restName || 'Kodad Store' });
+
+      renderCartUI();
+      RealtimeBus.Sounds.playBell();
+    }
+
+    function renderQuickCouponPills() {
+      const container = document.getElementById('quickCouponPills');
+      if (!container || !KODAD_DATA.coupons) return;
+
+      container.innerHTML = KODAD_DATA.coupons.map(c => `
+        <button onclick="setCouponCode('${c.code}')" class="shrink-0 px-2 py-1 rounded-xl bg-orange-50 text-orange-800 border border-orange-200 text-[10px] font-black">
+          🏷️ ${c.code} (₹${c.discount} OFF)
+        </button>
+      `).join('');
+    }
+
+    function setCouponCode(code) {
+      const input = document.getElementById('couponCodeInput');
+      if (input) input.value = code;
+      applyCouponCode();
+    }
+
+    function applyCouponCode() {
+      const code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
+      const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+      const user = RealtimeBus.getCurrentUser();
+      const res = RealtimeBus.validateCoupon(code, subtotal, user?.phone);
+
+      const notice = document.getElementById('couponNotice');
+      if (!res.valid) {
+        alert(res.message);
+        if (notice) notice.classList.add('hidden');
+        activeCoupon = null;
+      } else {
+        activeCoupon = res.coupon;
+        if (notice) {
+          notice.textContent = `✓ ${code} Applied (₹${res.coupon.discount} OFF)`;
+          notice.classList.remove('hidden');
+        }
+      }
+      renderCartUI();
+    }
+
+    // Proactive Toast Notification System (Zomato-grade alerts)
+    function showProactiveToast(title, message, icon = '🔔') {
+      const toast = document.getElementById('proactiveAlertToast');
+      if (!toast) return;
+      const iconEl = document.getElementById('toastIcon');
+      const titleEl = document.getElementById('toastTitle');
+      const msgEl = document.getElementById('toastMessage');
+      if (iconEl) iconEl.textContent = icon;
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = message;
+
+      toast.classList.remove('hidden');
+      if (RealtimeBus && RealtimeBus.Sounds && RealtimeBus.Sounds.playBell) {
+        RealtimeBus.Sounds.playBell();
+      }
+      if (RealtimeBus && RealtimeBus.notifyUser) {
+        RealtimeBus.notifyUser(title, message);
+      }
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 7000);
+    }
+
+    // 1-Tap PWA Android & iOS Mobile Install System
+    let deferredPwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner && !sessionStorage.getItem('kodadeats_pwa_dismissed')) {
+        banner.classList.remove('hidden');
+      }
+    });
+
+    function triggerPwaInstall() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choice) => {
+          console.log('[PWA] User response:', choice.outcome);
+          deferredPwaPrompt = null;
+          dismissPwaBanner();
+        });
+      } else {
+        alert("📲 To Install Eat.in App:\n\n• Android Chrome: Tap top 3 dots (⋮) -> 'Install App' or 'Add to Home Screen'\n• iPhone Safari: Tap Share (⎋) -> 'Add to Home Screen'");
+      }
+    }
+
+    function dismissPwaBanner() {
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.add('hidden');
+      sessionStorage.setItem('kodadeats_pwa_dismissed', 'true');
+    }
+
+    // 18. Realtime Listener & Proactive Event Dispatcher
+    function initRealtimeListener() {
+      // Auto-request browser push notifications
+      if (RealtimeBus && RealtimeBus.requestNotificationPermission) {
+        RealtimeBus.requestNotificationPermission();
+      }
+
+      RealtimeBus.on((event) => {
+        if (!activeOrderId) activeOrderId = RealtimeBus.getActiveOrderId();
+        
+        // When active order changes, trigger proactive alerts
+        if (event.payload && event.payload.id === activeOrderId) {
+          checkActiveOrder();
+          if (leafletMap) initTrackingMap(event.payload);
+
+          // Proactive Toast and Audio Alerts for Customer
+          const restName = event.payload.restaurant?.name || 'Restaurant';
+          const riderName = event.payload.captain?.name || 'Rider';
+
+          if (event.type === 'ACCEPTED' || (event.type === 'ORDER_UPDATED' && event.payload.status === 'ACCEPTED')) {
+            showProactiveToast("🍳 Kitchen Confirmed!", `${restName} is preparing your food freshly.`, "👨‍🍳");
+          } else if (event.type === 'ASSIGNED' || (event.type === 'ORDER_UPDATED' && event.payload.status === 'ASSIGNED')) {
+            showProactiveToast("🛵 Captain Assigned!", `Captain ${riderName} is heading to pick up your order.`, "🛵");
+          } else if (event.type === 'PICKED_UP' || (event.type === 'ORDER_UPDATED' && event.payload.status === 'PICKED_UP')) {
+            showProactiveToast("🚀 Order on the way!", `Captain ${riderName} picked up your meal and is speeding to you!`, "🛵");
+          } else if (event.type === 'ARRIVED' || (event.type === 'ORDER_UPDATED' && event.payload.status === 'ARRIVED')) {
+            showProactiveToast("🔔 Captain Arrived!", `Rider is at your doorstep. Share OTP: ${event.payload.deliveryOtp || ''}`, "🚪");
+          } else if (event.type === 'ORDER_DELIVERED' || event.type === 'DELIVERED' || (event.type === 'ORDER_UPDATED' && event.payload.status === 'DELIVERED')) {
+            showProactiveToast("✨ Order Delivered!", `Enjoy your hot meal from ${restName}! Tap to rate.`, "🎉");
+            if (RealtimeBus.Sounds && RealtimeBus.Sounds.playSuccessChime) {
+              RealtimeBus.Sounds.playSuccessChime();
+            }
+          } else if (event.type === 'ORDER_CANCELLED' || event.type === 'CANCELLED') {
+            showProactiveToast("⚠️ Order Cancelled", event.payload.cancelReason || "Your order was cancelled.", "❌");
+          }
+        }
+
+        if (event.type === 'RESTAURANT_SAVED' || event.type === 'PRODUCT_SAVED' || event.type === 'RESTAURANT_STATUS_CHANGED') {
+          renderRestaurants();
+          applyFilters();
+          renderFrequentlyOrdered();
+        }
+        if (event.type === 'ORDER_DELIVERED' || event.type === 'ORDER_CANCELLED') {
+          checkActiveOrder();
+          renderProfileDrawerContent();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

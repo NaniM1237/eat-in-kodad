@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="eatInGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5A36"/>
+      <stop offset="100%" stop-color="#FF8C42"/>
+    </linearGradient>
+    <linearGradient id="innerGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="eatInShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#FF5A36" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Rounded App Icon Background -->
+  <rect width="512" height="512" rx="128" fill="url(#eatInGrad)"/>
+  
+  <!-- Inner Glass Accent -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#innerGlow)" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="4"/>
+  
+  <!-- Plate / Cloche Accent -->
+  <circle cx="256" cy="200" r="100" fill="#FFFFFF" opacity="0.2"/>
+  <circle cx="256" cy="200" r="80" fill="#FFFFFF" filter="url(#eatInShadow)"/>
+  
+  <!-- Fork & Spoon Minimalist Graphic -->
+  <g fill="#FF5A36" transform="translate(206, 150) scale(1.0)">
+    <path d="M25 15 C25 35 35 48 45 52 L45 95 C45 98 48 100 50 100 C52 100 55 98 55 95 L55 52 C65 48 75 35 75 15 C75 10 70 8 68 12 C65 20 62 30 50 30 C38 30 35 20 32 12 C30 8 25 10 25 15 Z"/>
+    <path d="M47 0 L47 25 M53 0 L53 25" stroke="#FF5A36" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  
+  <!-- "Eat.in" Typography -->
+  <text x="256" y="375" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-weight="900" font-size="78" fill="#FFFFFF" text-anchor="middle" letter-spacing="-1">
+    Eat<tspan fill="#FDE047">.in</tspan>
+  </text>
+  
+  <text x="256" y="420" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-weight="800" font-size="20" fill="#FFF1EE" text-anchor="middle" letter-spacing="3">
+    INSTANT KODAD
+  </text>
+</svg>
