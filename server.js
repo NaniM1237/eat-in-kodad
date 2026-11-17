@@ -1,5 +1,5 @@
 /**
- * KodadEats - Cloud Realtime Backend Server (Express + Socket.io + MongoDB Atlas)
+ * Eat.in - Cloud Realtime Backend Server (Express + Socket.io + MongoDB Atlas)
  * Automatically syncs with MongoDB Atlas in the cloud OR persists locally in database.json
  */
 
@@ -82,6 +82,35 @@ app.get('/restaurant', (req, res) => {
   res.sendFile(path.join(__dirname, 'restaurant.html'));
 });
 
+// Explicit Static Asset Routes (Guarantees Vercel Serverless bundler includes & serves them without 404)
+app.get('/data.js', (req, res) => {
+  res.type('application/javascript').sendFile(path.join(__dirname, 'data.js'));
+});
+app.get('/realtime-sync.js', (req, res) => {
+  res.type('application/javascript').sendFile(path.join(__dirname, 'realtime-sync.js'));
+});
+app.get('/manifest.json', (req, res) => {
+  res.type('application/json').sendFile(path.join(__dirname, 'manifest.json'));
+});
+app.get('/sw.js', (req, res) => {
+  res.type('application/javascript').sendFile(path.join(__dirname, 'sw.js'));
+});
+app.get('/icon.svg', (req, res) => {
+  res.type('image/svg+xml').sendFile(path.join(__dirname, 'icon.svg'));
+});
+app.get('/icon-192.png', (req, res) => {
+  res.type('image/png').sendFile(path.join(__dirname, 'icon-192.png'));
+});
+app.get('/icon-512.png', (req, res) => {
+  res.type('image/png').sendFile(path.join(__dirname, 'icon-512.png'));
+});
+app.get('/upi-gpay-qr.jpg', (req, res) => {
+  res.type('image/jpeg').sendFile(path.join(__dirname, 'upi-gpay-qr.jpg'));
+});
+app.get('/upi-phonepe-qr.jpg', (req, res) => {
+  res.type('image/jpeg').sendFile(path.join(__dirname, 'upi-phonepe-qr.jpg'));
+});
+
 // Local File Database Helper (Guarantees zero data loss even without MongoDB)
 function readLocalDB() {
   try {
@@ -138,6 +167,29 @@ const OrderSchema = new mongoose.Schema({
 const OrderModel = mongoose.model('Order', OrderSchema);
 
 // REST API Endpoints
+
+// Root API status
+app.get('/api', (req, res) => {
+  res.json({
+    status: 'ONLINE',
+    service: 'Eat.in Realtime Cloud API',
+    database: isMongoConnected ? 'MongoDB Atlas' : 'Local Persistent Storage (database.json)'
+  });
+});
+
+// Vercel serverless rewrite fallback handler
+app.all('/api/index.js', (req, res, next) => {
+  const matched = req.headers['x-matched-path'] || req.headers['x-vercel-matched-path'];
+  if (matched && matched !== '/api/index.js') {
+    req.url = matched;
+    return app._router.handle(req, res, next);
+  }
+  res.json({
+    status: 'ONLINE',
+    service: 'Eat.in API',
+    database: isMongoConnected ? 'MongoDB Atlas' : 'Local Persistent Storage (database.json)'
+  });
+});
 
 // 1. Health check & DB status
 app.get('/api/health', (req, res) => {
@@ -224,7 +276,7 @@ app.post('/api/orders', async (req, res) => {
     // Broadcast instant realtime alert to Admin and Captains
     io.emit('ORDER_PLACED', newOrder);
 
-    console.log(`[KodadEats] 🔔 New Order: #${newOrder.id} - ₹${newOrder.total} by ${customer.name} (${customer.landmark})`);
+    console.log(`[Eat.in] 🔔 New Order: #${newOrder.id} - ₹${newOrder.total} by ${customer.name} (${customer.landmark})`);
     res.status(201).json({ success: true, order: newOrder });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -274,7 +326,7 @@ app.post('/api/orders/:id/status', async (req, res) => {
     io.emit(status, order);
     io.emit('ORDER_UPDATED', order);
 
-    console.log(`[KodadEats] Order #${order.id} updated -> ${status}`);
+    console.log(`[Eat.in] Order #${order.id} updated -> ${status}`);
     res.json({ success: true, order });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -392,7 +444,7 @@ if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`
 =====================================================
-🛵 KodadEats Cloud Backend Running!
+🛵 Eat.in Cloud Backend Running!
 📍 Port: ${PORT}
 💾 Mode: ${isMongoConnected ? 'MongoDB Atlas' : 'Local Persistent Storage (database.json)'}
 =====================================================
