@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Eat.in (కొదాడ ఈట్స్) - Core Catalog, Categories, Geo-Data & Store Registry
  * Ultra-Fast 15-20 Min Delivery across Kodad Town
  */
@@ -81,12 +81,12 @@ const KODAD_DATA = {
   foodShowcase: [
     { name: 'Special Thalakayya Biryani', price: 300, isVeg: false, tag: 'Raja Hamsa Special', image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=80' },
     { name: 'Special Prawns Biryani', price: 260, isVeg: false, tag: 'Raja Hamsa Hit', image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=500&auto=format&fit=crop&q=80' },
-    { name: 'Special Talakaya Curry', price: 270, isVeg: false, tag: 'Kodad Legendary Gravy', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80' },
+    { name: 'Special Talakaya Curry', price: 270, isVeg: false, tag: 'Kodad Legendary Gravy', image: 'https://plus.unsplash.com/premium_photo-1723708871094-2c02cf5f5394?w=500&auto=format&fit=crop&q=80' },
     { name: 'Special Boti Curry', price: 290, isVeg: false, tag: 'Fiery Country Gravy', image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80' },
-    { name: 'Crispy Fish Fry', price: 230, isVeg: false, tag: 'Tawa Shallow Fry', image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=80' },
+    { name: 'Crispy Fish Fry', price: 230, isVeg: false, tag: 'Tawa Shallow Fry', image: 'https://images.unsplash.com/photo-1518732751612-2c0787ff5684?w=500&auto=format&fit=crop&q=80' },
     { name: 'Ghee Karam Podi Dosa', price: 50, isVeg: true, tag: 'Lahari Hotel Hit', image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500&auto=format&fit=crop&q=80' },
     { name: 'Mini Bucket Biryani', price: 299, isVeg: false, tag: 'Green Bucket Biryani', image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500&auto=format&fit=crop&q=80' },
-    { name: 'Chicken Faham Mandi', price: 280, isVeg: false, tag: 'Mehfil Arabian Mandi', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80' },
+    { name: 'Chicken Faham Mandi', price: 280, isVeg: false, tag: 'Mehfil Arabian Mandi', image: 'https://plus.unsplash.com/premium_photo-1703417465970-e1b71f697cc4?w=500&auto=format&fit=crop&q=80' },
     { name: 'Suri Babu Chicken Pulav', price: 190, isVeg: false, tag: 'Military Pulav Hit', image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500&auto=format&fit=crop&q=80' },
     { name: 'Cold Thick Chocolate Shake', price: 80, isVeg: true, tag: 'Foodies Bakery', image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500&auto=format&fit=crop&q=80' }
   ],
@@ -810,7 +810,7 @@ const KODAD_DATA = {
       isFrequentlyOrdered: true,
       description: 'Traditional tangy and fiery Andhra tamarind fish pulusu cooked with fresh country fish, fenugreek and garlic.',
       badge: '🐟 Tangy Andhra Pulusu',
-      image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=80'
+      image: 'https://images.unsplash.com/photo-1518732751612-2c0787ff5684?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'rh-13',
@@ -842,7 +842,7 @@ const KODAD_DATA = {
       isFrequentlyOrdered: true,
       description: 'Fresh sliced fish fillets marinated in ginger-garlic chilli paste, shallow fried crisp on a hot tawa with curry leaves.',
       badge: '🐟 Tawa Crispy Special',
-      image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=80'
+      image: 'https://images.unsplash.com/photo-1518732751612-2c0787ff5684?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'rh-15',
@@ -922,7 +922,7 @@ const KODAD_DATA = {
       image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&auto=format&fit=crop&q=80'
     },
 
-        // ================= 2. GREEN BUCKET BIRYANI =================
+            // ================= 2. GREEN BUCKET BIRYANI =================
     {
       id: 'gb-1',
       restId: 'rest-greenbucket',
@@ -935,8 +935,8 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Authentic layered basmati chicken dum biryani packed in special branded green bucket with boiled egg, mirchi ka salan and dahi raita.',
-      badge: 'ðŸ— Bucket Special',
-      image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=80'
+      badge: '🍗 Bucket Special',
+      image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'gb-2',
@@ -950,8 +950,8 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Classic Kodad favorite slow-cooked aromatic chicken dum biryani served with spicy gravy and cooling curd raita.',
-      badge: 'ðŸ‘‘ Bestseller',
-      image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Bestseller',
+      image: 'https://images.unsplash.com/photo-1630409346824-4f0e7b080087?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'gb-3',
@@ -965,7 +965,7 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Special sealed green bucket loaded with fragrant long-grain chicken dum biryani (2 juicy pieces), boiled egg, salan & raita.',
-      badge: 'ðŸ— Mini Bucket',
+      badge: '🍗 Mini Bucket',
       image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500&auto=format&fit=crop&q=80'
     },
     {
@@ -980,7 +980,7 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Generous bucket of aromatic dum biryani with 4 tender chicken pieces, 2 boiled eggs, extra salan and raita.',
-      badge: 'ðŸ‘‘ Regular Bucket',
+      badge: '👑 Regular Bucket',
       image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=80'
     },
     {
@@ -995,8 +995,8 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Huge feast bucket loaded with 8 tender chicken pieces, 4 boiled eggs, 2 large salans and chilled raita.',
-      badge: 'ðŸŽ‰ Jumbo Family Feast',
-      image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=80'
+      badge: '🎉 Jumbo Family Feast',
+      image: 'https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'gb-6',
@@ -1010,7 +1010,7 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: true,
       description: 'Crispy fried boneless chicken bites tossed with red chillies, curry leaves and garlic yoghurt glaze. Flat 25% Off!',
-      badge: 'ðŸ”¥ Starter Hit',
+      badge: '🔥 Starter Hit',
       image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500&auto=format&fit=crop&q=80'
     },
     {
@@ -1025,8 +1025,8 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: true,
       description: 'Crisp chicken winglets deep fried in fiery Andhra marinade with hot schezwan dip.',
-      badge: 'ðŸ— Lollipop Favorite',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80'
+      badge: '🍗 Lollipop Favorite',
+      image: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'gb-8',
@@ -1040,7 +1040,7 @@ const KODAD_DATA = {
       rating: 4.7,
       isFrequentlyOrdered: false,
       description: 'Fragrant basmati biryani layered with marinated soft malai paneer cubes, saffron and caramelized onions.',
-      badge: 'ðŸŒ± Pure Veg Bucket',
+      badge: '🌱 Pure Veg Bucket',
       image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=500&auto=format&fit=crop&q=80'
     },
 
@@ -1049,7 +1049,7 @@ const KODAD_DATA = {
     {
       id: 'mf-1',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Fry Mandi 1 Piece',
       price: 299,
@@ -1058,13 +1058,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Aromatic Yemeni mandi rice infused with whole spices, topped with 1 crisp golden fried chicken quarter, spicy tomato salsa & garlic mayo dip.',
-      badge: 'ðŸ— Mandi 1 Pc',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80'
+      badge: '🍗 Mandi 1 Pc',
+      image: 'https://plus.unsplash.com/premium_photo-1694141251673-1758913ade48?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-2',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Fry Mandi 2 Pieces',
       price: 539,
@@ -1073,13 +1073,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Fragrant Arabian mandi platter served with 2 crispy fried chicken leg quarters, roasted almonds, tomato puree chutney and garlic mayonnaise. Serves 2.',
-      badge: 'ðŸ”¥ Mandi 2 Pcs',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=80'
+      badge: '🔥 Mandi 2 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1703417465970-e1b71f697cc4?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-3',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Fry Mandi 3 Pieces',
       price: 729,
@@ -1088,13 +1088,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Generous Arabic mandi tray with 3 seasoned deep-fried chicken portions, served over seasoned long-grain rice with signature dips. Serves 3.',
-      badge: 'ðŸ‘‘ Mandi 3 Pcs',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Mandi 3 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1694141251673-1758913ade48?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-4',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Fry Mandi 4 Pieces',
       price: 899,
@@ -1103,15 +1103,15 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Jumbo family mandi platter heaped with 4 crispy fried chicken quarters, fried onions, cashews, raisins, spicy tomato chutney & thick mayo. Serves 4-5.',
-      badge: 'ðŸŽ‰ Jumbo Mandi 4 Pcs',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=80'
+      badge: '🎉 Jumbo Mandi 4 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1703417465970-e1b71f697cc4?w=500&auto=format&fit=crop&q=80'
     },
 
     // --- CHICKEN JUICY MANDI ---
     {
       id: 'mf-5',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Juicy Mandi 1 Piece',
       price: 339,
@@ -1120,13 +1120,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Tender chicken quarter slow-braised in a rich, buttery Arabic spice broth, served atop fragrant mandi rice with authentic gravies.',
-      badge: 'ðŸ— Juicy Special',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=80'
+      badge: '🍗 Juicy Special',
+      image: 'https://plus.unsplash.com/premium_photo-1694141251673-1758913ade48?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-6',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Juicy Mandi 2 Pieces',
       price: 589,
@@ -1135,13 +1135,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Two succulent braised chicken portions bathed in delicious spice glaze, served with steaming Yemeni mandi rice and garlic mayo. Serves 2.',
-      badge: 'ðŸ”¥ Juicy 2 Pcs',
-      image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500&auto=format&fit=crop&q=80'
+      badge: '🔥 Juicy 2 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1703417465970-e1b71f697cc4?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-7',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Juicy Mandi 3 Pieces',
       price: 809,
@@ -1150,13 +1150,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Three pieces of melt-in-mouth slow-cooked juicy chicken layered on saffron-spiced long-grain rice with dry fruits. Serves 3.',
-      badge: 'ðŸ‘‘ Juicy 3 Pcs',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Juicy 3 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1694141251673-1758913ade48?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-8',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Juicy Mandi 4 Pieces',
       price: 998,
@@ -1165,15 +1165,15 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Grand feast mandi tray loaded with 4 tender juicy chicken pieces, richly flavored rice, toasted nuts and special house gravies. Serves 4-5.',
-      badge: 'ðŸŽ‰ Jumbo Juicy 4 Pcs',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80'
+      badge: '🎉 Jumbo Juicy 4 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1703417465970-e1b71f697cc4?w=500&auto=format&fit=crop&q=80'
     },
 
     // --- MUTTON FRY MANDI ---
     {
       id: 'mf-9',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Fry Mandi 1 Piece',
       price: 365,
@@ -1182,13 +1182,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Spiced and roasted tender goat mutton piece served over Arabic spiced basmati rice with freshly ground pepper and hot mandi dips.',
-      badge: 'ðŸ¥© Mutton Mandi 1 Pc',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '🥩 Mutton Mandi 1 Pc',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-10',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Fry Mandi 2 Pieces',
       price: 654,
@@ -1197,13 +1197,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Two hearty portions of crispy spiced roasted mutton on a fragrant bed of mandi rice, served with salsa and creamy mayonnaise. Serves 2.',
-      badge: 'ðŸ”¥ Mutton Mandi 2 Pcs',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '🔥 Mutton Mandi 2 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-11',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Fry Mandi 3 Pieces',
       price: 930,
@@ -1212,13 +1212,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Platter with 3 succulent pieces of fried mutton over aromatic mandi rice topped with fried onions and fried cashews. Serves 3.',
-      badge: 'ðŸ‘‘ Mutton Mandi 3 Pcs',
-      image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Mutton Mandi 3 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-12',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Fry Mandi 4 Pieces',
       price: 1164,
@@ -1227,15 +1227,15 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Royal feast tray with 4 rich mutton fry pieces over aromatic mandi basmati rice, accompanied by special Arabian chutneys. Serves 4-5.',
-      badge: 'ðŸŽ‰ Jumbo Mutton 4 Pcs',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '🎉 Jumbo Mutton 4 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
 
     // --- MUTTON JUICY MANDI ---
     {
       id: 'mf-13',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Juicy Mandi 1 Piece',
       price: 420,
@@ -1244,13 +1244,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Slow-braised fall-off-the-bone goat mutton cooked in rich buttery yakhni broth, served atop spiced long-grain rice with garlic tahini.',
-      badge: 'ðŸ¥© Mutton Juicy 1 Pc',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '🥩 Mutton Juicy 1 Pc',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-14',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Juicy Mandi 2 Pieces',
       price: 730,
@@ -1259,13 +1259,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Two portions of tender juicy mutton simmered in rich gravy over seasoned Yemeni mandi rice with tomato salsa and dips. Serves 2.',
-      badge: 'ðŸ”¥ Mutton Juicy 2 Pcs',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '🔥 Mutton Juicy 2 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-15',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Juicy Mandi 3 Pieces',
       price: 1020,
@@ -1274,13 +1274,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Platter of three slow-cooked juicy mutton pieces drenched in spiced marrow juices over fragrant rice with golden onions. Serves 3.',
-      badge: 'ðŸ‘‘ Mutton Juicy 3 Pcs',
-      image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Mutton Juicy 3 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-16',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Juicy Mandi 4 Pieces',
       price: 1309,
@@ -1289,15 +1289,15 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'King-size royal Arabian feast with 4 pieces of slow-simmered juicy mutton on spiced long-grain basmati rice. Serves 4-5.',
-      badge: 'ðŸŽ‰ Royal Mutton 4 Pcs',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '🎉 Royal Mutton 4 Pcs',
+      image: 'https://plus.unsplash.com/premium_photo-1723708882892-de33ff578c11?w=500&auto=format&fit=crop&q=80'
     },
 
     // --- PRAWNS FRY & JUICY MANDI ---
     {
       id: 'mf-17',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Prawns Fry Mandi 1 Piece',
       price: 354,
@@ -1306,13 +1306,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Succulent jumbo prawns crisp fried in coastal Arabian spices, served atop fragrant mandi rice with garlic dip.',
-      badge: 'ðŸ¦ Prawns Fry Mandi',
-      image: 'https://images.unsplash.com/photo-1559737558-2453c07e0503?w=500&auto=format&fit=crop&q=80'
+      badge: '🦐 Prawns Fry Mandi',
+      image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-18',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Prawns Fry Mandi 2 Pieces',
       price: 720,
@@ -1321,13 +1321,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Double portion of spiced crispy deep-fried prawns served over aromatic Yemeni rice with tangy salsa. Serves 2.',
-      badge: 'ðŸ”¥ Prawns Mandi 2 Pcs',
-      image: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=500&auto=format&fit=crop&q=80'
+      badge: '🔥 Prawns Mandi 2 Pcs',
+      image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-19',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Prawns Fry Mandi 3 Pieces',
       price: 998,
@@ -1336,13 +1336,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Large platter of golden crispy fried prawns layered over aromatic mandi rice with cashews and onions. Serves 3.',
-      badge: 'ðŸ‘‘ Prawns Mandi 3 Pcs',
-      image: 'https://images.unsplash.com/photo-1559737558-2453c07e0503?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Prawns Mandi 3 Pcs',
+      image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-20',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Prawns Juicy Mandi 1 Piece',
       price: 354,
@@ -1351,15 +1351,15 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Tender ocean prawns simmered in rich butter-garlic gravy and mild spices, served over seasoned long-grain mandi rice.',
-      badge: 'ðŸ¦ Prawns Juicy Special',
-      image: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=500&auto=format&fit=crop&q=80'
+      badge: '🦐 Prawns Juicy Special',
+      image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=500&auto=format&fit=crop&q=80'
     },
 
     // --- NON-VEG BIRYANIS ---
     {
       id: 'mf-21',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Dum Biryani Single',
       price: 186,
@@ -1368,13 +1368,13 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: true,
       description: 'Authentic Hyderabadi Biryani - Long grain fragrant basmati cooked on dum with succulent marinated chicken, rich spices, mirchi ka salan and raita.',
-      badge: 'ðŸ‘‘ Authentic Hyderabadi',
-      image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Authentic Hyderabadi',
+      image: 'https://images.unsplash.com/photo-1630409346824-4f0e7b080087?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-22',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Dum Full Biryani',
       price: 319,
@@ -1383,13 +1383,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Authentic Hyderabadi Biryani - Full portion of royal dum biryani with multiple tender chicken pieces, boiled egg, spicy salan and onion raita.',
-      badge: 'ðŸ— Full Dum Biryani',
+      badge: '🍗 Full Dum Biryani',
       image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-23',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken 65 Biryani',
       price: 398,
@@ -1398,7 +1398,7 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Spiced dum biryani rice crowned with crispy fiery chicken 65 cubes tossed in yoghurt, curry leaves and green chillies.',
-      badge: 'ðŸ”¥ Chicken 65 Biryani',
+      badge: '🔥 Chicken 65 Biryani',
       image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500&auto=format&fit=crop&q=80'
     },
 
@@ -1406,7 +1406,7 @@ const KODAD_DATA = {
     {
       id: 'mf-24',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Paneer 65',
       price: 354,
@@ -1415,13 +1415,13 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: false,
       description: 'Fresh malai paneer cubes marinated in Andhra spices, crispy fried and tossed with curry leaves and green chillies.',
-      badge: 'ðŸŒ± Veg Starter',
+      badge: '🌱 Veg Starter',
       image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-25',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Paneer Majestic',
       price: 365,
@@ -1430,7 +1430,7 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: false,
       description: 'Strip-cut tender paneer wok-tossed in a creamy garlic and mint curd sauce with toasted spices.',
-      badge: 'ðŸŒ± Paneer Majestic',
+      badge: '🌱 Paneer Majestic',
       image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=500&auto=format&fit=crop&q=80'
     },
 
@@ -1438,7 +1438,7 @@ const KODAD_DATA = {
     {
       id: 'mf-26',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken 65',
       price: 276,
@@ -1447,13 +1447,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Classic boneless chicken cubes coated in spicy batter, crisp fried and tossed with slit chillies and curry leaves.',
-      badge: 'ðŸ”¥ Starter Hit',
+      badge: '🔥 Starter Hit',
       image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-27',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chilli Chicken',
       price: 276,
@@ -1462,13 +1462,13 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: true,
       description: 'Crispy diced chicken wok-tossed with capsicum, onions, dark soya and fiery green chillies.',
-      badge: 'ðŸŒ¶ï¸ Indo-Chinese',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80'
+      badge: '🌶️ Indo-Chinese',
+      image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-28',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Pepper Chicken',
       price: 276,
@@ -1476,14 +1476,14 @@ const KODAD_DATA = {
       isVeg: false,
       rating: 4.8,
       isFrequentlyOrdered: false,
-      description: 'Tender chicken sautÃ©ed with crushed black peppercorns, roasted coriander, curry leaves and caramelized onions.',
-      badge: 'âš¡ Pepper Fry',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=80'
+      description: 'Tender chicken sautéed with crushed black peppercorns, roasted coriander, curry leaves and caramelized onions.',
+      badge: '⚡ Pepper Fry',
+      image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-29',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Lollipop (6pc)',
       price: 379,
@@ -1492,13 +1492,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Six succulent chicken drumettes frenched, crisp fried to perfection and served with tangy schezwan sauce. Delicious!',
-      badge: 'ðŸ— Lollipop Favorite',
-      image: 'https://images.unsplash.com/photo-1527477378408-1bc422997232?w=500&auto=format&fit=crop&q=80'
+      badge: '🍗 Lollipop Favorite',
+      image: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-30',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Fry',
       price: 420,
@@ -1507,13 +1507,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Tender pieces of goat meat slow-roasted in country ghee with Andhra spices, onions and fresh curry leaves.',
-      badge: 'ðŸ¥© Mutton Special',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '🥩 Mutton Special',
+      image: 'https://plus.unsplash.com/premium_photo-1723708871094-2c02cf5f5394?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-31',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chilli Mutton',
       price: 398,
@@ -1522,13 +1522,13 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: false,
       description: 'Tender mutton bites wok-tossed with green chillies, peppers, garlic and savory sauces.',
-      badge: 'ðŸŒ¶ï¸ Fiery Chilli Mutton',
-      image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&auto=format&fit=crop&q=80'
+      badge: '🌶️ Fiery Chilli Mutton',
+      image: 'https://plus.unsplash.com/premium_photo-1723708871094-2c02cf5f5394?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-32',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Mutton Ghee Roast',
       price: 443,
@@ -1537,13 +1537,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Coastal style spicy mutton roast cooked in rich desi ghee with roasted whole masala paste.',
-      badge: 'ðŸ‘‘ Ghee Roast Hit',
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&auto=format&fit=crop&q=80'
+      badge: '👑 Ghee Roast Hit',
+      image: 'https://plus.unsplash.com/premium_photo-1723708871094-2c02cf5f5394?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-33',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Appollo Fish',
       price: 365,
@@ -1552,13 +1552,13 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: true,
       description: 'Hyderabadi classic boneless fish fillets crisp fried and tossed in a spicy, tangy yoghurt-chilli tempering.',
-      badge: 'ðŸŸ Apollo Fish',
-      image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500&auto=format&fit=crop&q=80'
+      badge: '🐟 Apollo Fish',
+      image: 'https://images.unsplash.com/photo-1518732751612-2c0787ff5684?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-34',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Schezwan Prawns',
       price: 354,
@@ -1566,14 +1566,14 @@ const KODAD_DATA = {
       isVeg: false,
       rating: 4.8,
       isFrequentlyOrdered: false,
-      description: 'Fresh ocean prawns sautÃ©ed in fiery homemade schezwan sauce with spring onions and garlic.',
-      badge: 'ðŸ¦ Schezwan Prawns',
-      image: 'https://images.unsplash.com/photo-1559737558-2453c07e0503?w=500&auto=format&fit=crop&q=80'
+      description: 'Fresh ocean prawns sautéed in fiery homemade schezwan sauce with spring onions and garlic.',
+      badge: '🦐 Schezwan Prawns',
+      image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-35',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Loose Prawns',
       price: 354,
@@ -1582,13 +1582,13 @@ const KODAD_DATA = {
       rating: 4.9,
       isFrequentlyOrdered: true,
       description: 'Crispy batter-fried juicy prawns seasoned with garlic, black pepper and Andhra spices.',
-      badge: 'ðŸ¦ Loose Prawns Hit',
-      image: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=500&auto=format&fit=crop&q=80'
+      badge: '🦐 Loose Prawns Hit',
+      image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-36',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Faham Mandi (Half)',
       price: 280,
@@ -1597,13 +1597,13 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: false,
       description: 'Charcoal grilled Arabic faham chicken served over steaming spiced Yemeni mandi rice with tomato chutney & garlic mayo.',
-      badge: 'ðŸ«“ Charcoal Faham',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=80'
+      badge: '🫓 Charcoal Faham',
+      image: 'https://plus.unsplash.com/premium_photo-1703417465970-e1b71f697cc4?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'mf-37',
       restId: 'rest-mehfil',
-      restName: 'Mehfil Arabian Mandi (à°®à±†à°¹à°«à°¿à°²à± à°®à°‚à°¡à°¿)',
+      restName: 'Mehfil Arabian Mandi (మెహఫిల్ మండి)',
       category: 'restaurants',
       name: 'Chicken Shawarma Roll (Jumbo)',
       price: 110,
@@ -1612,9 +1612,11 @@ const KODAD_DATA = {
       rating: 4.8,
       isFrequentlyOrdered: true,
       description: 'Spit-roasted shredded chicken stuffed in rumali roti with pickled veggies, French fries and loaded garlic tahini mayo.',
-      badge: 'ðŸŒ¯ Shawarma Hit',
+      badge: '🌯 Shawarma Hit',
       image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80'
     },
+
+
     // ================= 4. SURI BABU PULAV =================
     {
       id: 'sb-1',
@@ -1706,7 +1708,7 @@ const KODAD_DATA = {
       isFrequentlyOrdered: true,
       description: 'Boneless fish fillets tossed with green chillies, curry leaves and yoghurt-based spicy masala.',
       badge: '🐟 Apollo Fish Hit',
-      image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=80'
+      image: 'https://images.unsplash.com/photo-1518732751612-2c0787ff5684?w=500&auto=format&fit=crop&q=80'
     },
     {
       id: 'gk-3',
@@ -2451,9 +2453,9 @@ const KODAD_DATA = {
     { id: 'add-1', name: 'Spicy Mirchi Ka Salan (Extra Cup)', price: 30, isVeg: true, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=300&q=80' },
     { id: 'add-2', name: 'Chilled Thick Curd Raita', price: 20, isVeg: true, image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=300&q=80' },
     { id: 'add-3', name: 'Thick Badam Milk (Chilled 300ml)', price: 45, isVeg: true, image: 'https://images.unsplash.com/photo-1558857563-b371f32a7620?auto=format&fit=crop&w=300&q=80' },
-    { id: 'add-4', name: 'Hot Desi Ghee Gulab Jamun (2 Pcs)', price: 40, isVeg: true, image: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=300&q=80' },
+    { id: 'add-4', name: 'Hot Desi Ghee Gulab Jamun (2 Pcs)', price: 40, isVeg: true, image: 'https://images.unsplash.com/photo-1593701461250-d7b22dfd3a77?auto=format&fit=crop&w=300&q=80' },
     { id: 'add-5', name: 'Crispy Medu Vada (1 Pc)', price: 20, isVeg: true, image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=300&q=80' },
-    { id: 'add-6', name: 'Mineral Water Bottle (1L Chilled)', price: 20, isVeg: true, image: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=300&q=80' }
+    { id: 'add-6', name: 'Mineral Water Bottle (1L Chilled)', price: 20, isVeg: true, image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=300&q=80' }
   ],
 
   // Milestone Loyalty Coupons
