@@ -9,7 +9,6 @@
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/captain", "destination": "/captain.html" },
-    { "source": "/restaurant", "destination": "/restaurant.html" },
-    { "source": "/api/(.*)", "destination": "/api" }
+    { "source": "/restaurant", "destination": "/restaurant.html" }
   ]
 }
