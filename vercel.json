@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "functions": {
     "api/*.js": {
-      "includeFiles": "{data.js,realtime-sync.js,manifest.json,sw.js,icon.svg,*.png,*.jpg,*.html}"
+      "includeFiles": "{data.js,realtime-sync.js,manifest.json,sw.js,icon.svg,*.png,*.jpg,*.webp,*.html}"
     }
   },
   "rewrites": [

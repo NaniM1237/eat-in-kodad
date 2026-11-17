@@ -110,6 +110,9 @@ app.get('/upi-gpay-qr.jpg', (req, res) => {
 app.get('/upi-phonepe-qr.jpg', (req, res) => {
   res.type('image/jpeg').sendFile(path.join(__dirname, 'upi-phonepe-qr.jpg'));
 });
+app.get('/rajahamsa-store.webp', (req, res) => {
+  res.type('image/webp').sendFile(path.join(__dirname, 'rajahamsa-store.webp'));
+});
 
 // Local File Database Helper (Guarantees zero data loss even without MongoDB)
 function readLocalDB() {
